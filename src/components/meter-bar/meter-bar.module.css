@@ -1,0 +1,32 @@
+@layer {
+    .meter-bar {
+        background: var(--background-deep-rgb);
+        min-width: 10px;
+        height: 16px;
+        padding: 2px;
+        border-radius: 25px;
+    }
+
+    .meter-bar-empty {
+        position: relative;
+        background: var(--background-rgb);
+        border-radius: inherit;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .meter-bar-fill {
+        width: 75%;
+        height: 100%;
+        border-radius: inherit;
+        background: var(--green);
+        font-size: 8px;
+    }
+
+    .bar-label {
+        position: absolute;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+}

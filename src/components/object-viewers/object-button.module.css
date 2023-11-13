@@ -1,0 +1,64 @@
+.object-button {
+    border-radius: 25px;
+    background: #303841;
+    border: 0;
+    width: 93px;
+    height: 127px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: inherit;
+    font-size: 10px;
+    color: var(--foreground-rgb);
+}
+
+.icon-container {
+    position: relative;
+    width: 65px;
+    height: 87px;
+}
+
+.rotate {
+    transform: rotate(-45deg);
+}
+
+.button-icon {
+    object-fit: contain;
+    pointer-events: none;
+    user-select: none;
+    user-drag: none;
+	-webkit-user-drag: none;
+	-moz-user-select: none;
+}
+
+.bag-move-btn {
+    background: var(--red);
+    padding: 0px 8px;
+    height: 18px;
+    font-size: inherit;
+    border-radius: 5px;
+}
+
+.currency-icon {
+    position: relative;
+    width: 13px;
+    height: 13px;
+}
+
+.pricing {
+    display: flex;
+    padding: 2px 10px 0px 10px;
+    justify-content: center;
+    align-items: center;
+    gap: 2px;
+    align-self: stretch;
+}
+
+.inventory-add-btn {
+    background: var(--green);
+    padding: 0px 8px;
+    height: 18px;
+    font-size: inherit;
+    border-radius: 5px;
+}

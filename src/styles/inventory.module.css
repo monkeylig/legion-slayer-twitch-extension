@@ -1,0 +1,70 @@
+.inventory-view {
+    display: flex;
+    max-width: 100%;
+    padding: 0px 5px;
+    flex-direction: column;
+}
+
+.bag-preview {
+    display: flex;
+    gap: 2px;
+    border-radius: 5px;
+    border: 1px solid var(--foreground-rgb);
+    overflow-x: scroll;
+}
+
+.bag-item {
+    flex-shrink: 0;
+}
+
+.inventory-container {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.bag-full-notification {
+    position: sticky;
+    border-radius: 5px;
+    background: var(--green);
+    padding: 0px 5px;
+    top: 5px;
+    right: 5px;
+    z-index: 5;
+    align-self: flex-end;
+}
+
+.page-nav {
+    position: absolute;
+    display: flex;
+    font-size: 12px;
+    bottom: 14px;
+    z-index: 5;
+}
+
+.left-page-nav {
+    width: 60px;
+    height: 43px;
+    padding: 10px 0px;
+    border-radius: 10px 0px 0px 10px;
+    border-right: 1px solid rgba(238, 238, 238, 0.30);
+    background: var(--blue);
+}
+
+.right-page-nav {
+    width: 60px;
+    height: 43px;
+    padding: 10px 0px;
+    border-radius: 0px 10px 10px 0px;
+    border-left: 1px solid rgba(238, 238, 238, 0.30);
+    background: var(--blue);
+}
+
+.page-tracker {
+    display: flex;
+    height: 43px;
+    padding: 14px 3px 14px 4px;
+    justify-content: center;
+    background: var(--blue);
+}

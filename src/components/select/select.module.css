@@ -1,0 +1,9 @@
+.rpg-select {
+    background: var(--background-rgb);
+    border-radius: 25px;
+    border: 1px solid var(--foreground-rgb);
+    font-family: inherit;
+    color: var(--foreground-rgb);
+    outline: none;
+    text-align: center;
+}

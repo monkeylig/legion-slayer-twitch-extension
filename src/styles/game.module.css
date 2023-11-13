@@ -1,0 +1,55 @@
+
+.game-nav {
+    position: absolute;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    bottom: 6px;
+    padding: 5px 10px;
+}
+
+.nav-button {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--blue);
+    box-shadow: 0px 0px 4px #000;
+}
+
+.profile-bar {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    border-radius: 30px;
+    border: 2px solid var(--foreground-rgb);
+    width: 50%;
+    max-width: 200px;
+    height: 60px;
+    background: var(--foreground-rgb);
+    box-shadow: 0px 0px 7px 0px #000;
+    outline: none;
+    border: 0;
+    padding-left: 2px;
+    font-family: inherit;
+}
+
+.profile-avatar {
+    position: relative;
+    overflow: hidden;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+}
+
+.health-level-container {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    padding-right: 10px;
+}
+
+.health-level-container span {
+    text-align: left;
+    font-size: 0.9em;
+}

@@ -1,0 +1,39 @@
+.center-text {
+    text-align: center;
+}
+
+.signup-container {
+    gap: 15px;
+}
+
+.vitality-choice-btn,
+.weapon-choice-btn {
+    pointer-events: none;
+}
+
+.flex-gap-h {
+    display: flex;
+    gap: 10px;
+    padding: 0 10px;
+}
+
+.weapon-choices-input[type=radio]:checked + .weapon-choices-label .weapon-choice-btn{
+    border: 2px solid #C5C5C5;
+}
+
+.vitality-choice-btn {
+    background: transparent;
+    border: 2px solid var(--blue);
+}
+
+.vitality-choices-input[type=radio]:checked + .vitality-choices-label .vitality-choice-btn{
+    background: var(--blue);
+}
+
+.back-btn {
+    background: var(--red);
+}
+
+.custom-btn {
+    background: var(--blue);
+}

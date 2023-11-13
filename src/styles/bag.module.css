@@ -1,0 +1,17 @@
+.inventory-btn {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    background: var(--red);
+    border-radius: 50%;
+    bottom: 10px;
+    right: 10px;
+}
+
+.bag-viewer {
+    display: flex;
+    padding: 5px;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}

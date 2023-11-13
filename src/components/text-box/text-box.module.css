@@ -1,0 +1,26 @@
+@layer {
+    .rpg-text-box {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+    }
+
+    .rpg-text-box input {
+        background: var(--foreground-rgb);
+        border-radius: 5px;
+        border: 2px solid var(--foreground-rgb);
+        padding: 5px;
+        outline: none;
+        font-family: inherit;
+    }
+
+    .rpg-text-box input:valid,
+    .rpg-text-box input:focus {
+        border: 2px solid var(--blue);
+    }
+
+    .rpg-text-box span {
+        color: #2291D6;
+        font-size: 0.5em;
+    }
+}
