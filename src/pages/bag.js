@@ -6,8 +6,39 @@ import BagObjectButton from '@/components/object-viewers/bag-object-button';
 
 import pageStyles from '@/styles/pages.module.css'
 import bagStyles from '@/styles/bag.module.css'
+import { useRouter } from 'next/router';
+import frontendContext from '@/utilities/frontend-context';
+import backend from '@/utilities/backend-calls';
+import { useState } from 'react';
 
 export default function Bag() {
+    const router = useRouter();
+    const [player, setPlayer] = useState(frontendContext.get().player);
+
+    const moveObject = (objectId) => {
+        backend.moveObjectFromBagToInventory(player.id, objectId)
+        .then(player => {
+            setPlayer(player);
+        })
+        .catch(error => {});
+    };
+
+    const bagButtons = player.bag.objects.map(bagObject => {
+        const urlObject = {
+            pathname: '/object-view',
+            query: {
+                object: JSON.stringify(bagObject),
+                mode: 'bag'
+            }
+        };
+        return <BagObjectButton tilt={bagObject.type === 'weapon'} label={bagObject.content.name} imageSrc={bagObject.content.icon} key={bagObject.id}
+        onMoveClicked={() => {moveObject(bagObject.id);}} onClick={()=>{router.push(urlObject)}}/>
+    });
+
+    for(let i=0; i < Math.max(0, player.bag.capacity - player.bag.objects.length); i++) {
+        bagButtons.push(<BagObjectButton empty key={i}/>);
+    }
+
     return (
         <>
             <Head>
@@ -15,19 +46,14 @@ export default function Bag() {
                 <meta name="description" content="A place where players can manage their bag." />
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <link rel="icon" href="/favicon.ico" />
-                <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
             </Head>
             <div style={{gap: '15px'}} className={`${pageStyles['page-container-h-center']}`}>
-                <HeaderBarBack title='Bag'/>
+                <HeaderBarBack title='Bag' onBackClicked={() => { router.back(); }}/>
                 <div className={`${bagStyles['bag-viewer']}`}>
-                    <BagObjectButton/>
-                    <BagObjectButton/>
-                    <BagObjectButton/>
-                    <BagObjectButton/>
-                    <BagObjectButton imageSrc='tome_azure.webp'/>
+                    {bagButtons}
                 </div>
             </div>
-            <Button className={`${bagStyles['inventory-btn']} material-symbols-outlined`}>inventory_2</Button>
+            <Button className={`${bagStyles['inventory-btn']} material-symbols-outlined`} onClick={() => {router.push('/inventory')}}>inventory_2</Button>
         </>
     );
 }

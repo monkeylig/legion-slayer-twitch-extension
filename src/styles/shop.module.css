@@ -26,6 +26,7 @@
 
 .shop-section-items {
     display: flex;
+    justify-content: center;
     padding: 10px;
     gap: 5px;
     flex-wrap: wrap;

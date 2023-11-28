@@ -8,12 +8,31 @@ import Button from '@/components/button/button'
 import ObjectButton from '@/components/object-viewers/object-button'
 import RadioGroup from '@/components/radio-group/radio-group'
 import TextBox from '@/components/text-box/text-box'
+import useAsync from '@/utilities/useAsync'
+import backend from '@/utilities/backend-calls'
+import Image from 'next/image'
+import frontendContext from '@/utilities/frontend-context'
+import { useRouter } from 'next/router'
 
 export default function SignUp() {
+    const [data, isPending, error] = useAsync(backend.getGameInfo);
+
+    return (        
+        <div>
+            {isPending && <h1>Loading Signup Page</h1>}
+            {data && <SignUpRender gameInfo={data}/>}
+            {error && <p>Sorry something went wrong. Try refreshing the page.</p>}
+        </div>
+    );
+}
+
+function SignUpRender({gameInfo}) {
     const [menuIndex, setMenuIndex] = useState(0);
     const weaponChoice = useRef(null);
     const vitalityChoice = useRef(null);
+    const avatarChoice = useRef(null);
     const nameChoice = useRef('');
+    const router = useRouter();
 
     const menuControl = {
         next() {
@@ -28,6 +47,17 @@ export default function SignUp() {
         }
     };
 
+    const onBeginAdventure = () => {
+        backend.createNewPlayer(nameChoice.current, frontendContext.get().accountId, avatarChoice.current, vitalityChoice.current, weaponChoice.current)
+        .then(newPlayer => {
+            frontendContext.setPlayer(newPlayer);
+            router.push('/game');
+        })
+        .catch(error => {
+            console.log(error);
+        });
+    };
+
     const menuSequence = [
         {
             title: 'Welcome',
@@ -35,11 +65,15 @@ export default function SignUp() {
         },
         {
             title: 'Strength or Magic?',
-            UI: <WeaponMenu menuControl={menuControl} currentValue={weaponChoice.current} weaponOptions={['weapon1', 'weapon2']} onValueUpdated={(value) => weaponChoice.current = value}/>
+            UI: <WeaponMenu menuControl={menuControl} currentValue={weaponChoice.current} startingWeapons={gameInfo.startingWeapons} onValueUpdated={(value) => weaponChoice.current = value}/>
         },
         {
             title: 'Health or Defense?',
             UI: <VitalityMenu menuControl={menuControl} currentValue={vitalityChoice.current} onValueUpdated={(value) => vitalityChoice.current = value}/>
+        },
+        {
+            title: "Avatar",
+            UI: <AvatarMenu menuControl={menuControl} currentValue={avatarChoice.current} startingAvatars={gameInfo.startingAvatars} onValueUpdated={(value) => avatarChoice.current = value}/>
         },
         {
             title: 'Choose a Name',
@@ -47,7 +81,7 @@ export default function SignUp() {
         },
         {
             title: 'Ebark',
-            UI: <SendOffScreen menuControl={menuControl}/>
+            UI: <SendOffScreen menuControl={menuControl} onBeginAdventure={onBeginAdventure}/>
         }
     ];
 
@@ -83,7 +117,7 @@ function WelcomeMenu({menuControl}) {
     );
 }
 
-function WeaponMenu({menuControl, onValueUpdated, weaponOptions, currentValue}) {
+function WeaponMenu({menuControl, startingWeapons, onValueUpdated, currentValue}) {
     const [isValid, setIsValid] = useState(currentValue);
 
     const onChange = (event) => {
@@ -93,13 +127,18 @@ function WeaponMenu({menuControl, onValueUpdated, weaponOptions, currentValue}) 
             setIsValid(value);
         }
     };
-    const optionData = weaponOptions.map((option) => {
-        return {
-            UI: <ObjectButton className={signUpStyles['weapon-choice-btn']}/>,
-            value: option,
-            checked: currentValue === option
-        };
-    });
+    const optionData = [
+        {
+            UI: <ObjectButton tilt label={startingWeapons.physical.name} imageSrc={startingWeapons.physical.icon} className={signUpStyles['weapon-choice-btn']}/>,
+            value: 'physical',
+            checked: currentValue === 'physical'
+        },
+        {
+            UI: <ObjectButton tilt label={startingWeapons.magical.name} imageSrc={startingWeapons.magical.icon} className={signUpStyles['weapon-choice-btn']}/>,
+            value: 'magical',
+            checked: currentValue === 'magical'
+        }
+    ];
 
     return (
         <>
@@ -113,7 +152,7 @@ function WeaponMenu({menuControl, onValueUpdated, weaponOptions, currentValue}) 
     );
 }
 
-function VitalityMenu({menuControl, onValueUpdated, currentValue}) {
+function VitalityMenu({menuControl, currentValue, onValueUpdated}) {
     const [isValid, setIsValid] = useState(currentValue);
 
     const onChange = (event) => {
@@ -148,6 +187,33 @@ function VitalityMenu({menuControl, onValueUpdated, currentValue}) {
     );
 }
 
+function AvatarMenu({menuControl, startingAvatars=[], currentValue, onValueUpdated}) {
+    const [isValid, setIsValid] = useState(currentValue);
+    const onChange = (event) => {
+        const value = event.target.value;
+        if(onValueUpdated) {
+            onValueUpdated(value);
+        }
+        setIsValid(value);
+    };
+    const avatarOptions = startingAvatars.map((avatar) => {
+        return {
+                UI: <div className={signUpStyles['avatar-btn']}><Image fill src={avatar} className={signUpStyles['avatar-choice-btn']}/></div>,
+                value: avatar,
+                checked: currentValue === avatar
+            };
+    });
+
+    return (
+    <>
+        <p className={signUpStyles['center-text']}>Choose your avatar</p>
+        <RadioGroup  className={signUpStyles['flex-gap-h']} inputClassName={signUpStyles['avatar-choices-input']}
+                labelClassName={signUpStyles['avatar-choices-label']} groupId='avatar-choice' options={avatarOptions} onChange={onChange}/>
+        <SignUpNav enableBack enableContinue={isValid} menuControl={menuControl}/>
+    </>
+    );
+}
+
 function NameMenu({menuControl, onValueUpdated, currentValue}) {
     const [value, setValue] = useState(currentValue);
 
@@ -169,18 +235,18 @@ function NameMenu({menuControl, onValueUpdated, currentValue}) {
     );
 }
 
-function SendOffScreen({menuControl}) {
+function SendOffScreen({menuControl, onBeginAdventure}) {
     return (
         <>
             <p className={signUpStyles['center-text']}>
                 You are now ready to begin your new adventure! Go on and slay monsters, level up, and descover new powerful weapons and abilities!
             </p>
-            <SignUpNav enableBack enableCustomButton customButtonText='Begin Adventure' menuControl={menuControl}/>
+            <SignUpNav enableBack enableCustomButton customButtonText='Begin Adventure' menuControl={menuControl} onCustomButtonClick={onBeginAdventure}/>
         </>
     );
 }
 
-function SignUpNav({enableBack=false, enableContinue=false, enableCustomButton=false, customButtonText, menuControl, onCustomButtonClick}) {
+function SignUpNav({enableBack=false, enableContinue=false, enableCustomButton=false, customButtonText, menuControl, onCustomButtonClick=()=>{}}) {
     return (
         <div className={signUpStyles['flex-gap-h']}>
             {enableBack && <Button className={signUpStyles['back-btn']} onClick={() => menuControl.back()}>Back</Button>}

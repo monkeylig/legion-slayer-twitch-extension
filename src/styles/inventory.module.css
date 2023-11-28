@@ -36,7 +36,7 @@
 }
 
 .page-nav {
-    position: absolute;
+    position: fixed;
     display: flex;
     font-size: 12px;
     bottom: 14px;

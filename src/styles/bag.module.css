@@ -1,11 +1,17 @@
 .inventory-btn {
-    position: absolute;
+    position: fixed;
     width: 60px;
     height: 60px;
     background: var(--red);
     border-radius: 50%;
     bottom: 10px;
     right: 10px;
+    box-shadow: 0px 0px 4px #000;
+    z-index: 5;
+}
+
+.inventory-btn:active {
+    background: var(--dark-red);
 }
 
 .bag-viewer {

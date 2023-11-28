@@ -1,6 +1,6 @@
 .object-button {
     border-radius: 25px;
-    background: #303841;
+    background: var(--background-deep-rgb);
     border: 0;
     width: 93px;
     height: 127px;
@@ -9,8 +9,13 @@
     justify-content: center;
     align-items: center;
     font-family: inherit;
-    font-size: 10px;
+    font-size: 12px;
+    text-align: center;
     color: var(--foreground-rgb);
+}
+
+.object-button:hover {
+    background: black;
 }
 
 .icon-container {

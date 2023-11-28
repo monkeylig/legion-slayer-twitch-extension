@@ -13,8 +13,10 @@
 
 .flex-gap-h {
     display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 10px;
-    padding: 0 10px;
+    padding: 0 5px;
 }
 
 .weapon-choices-input[type=radio]:checked + .weapon-choices-label .weapon-choice-btn{
@@ -36,4 +38,20 @@
 
 .custom-btn {
     background: var(--blue);
+}
+
+.avatar-btn {
+    position: relative;
+    width: 100px;
+    height: 100px;
+}
+
+.avatar-choice-btn {
+    background: transparent;
+    border: 2px solid var(--blue);
+    border-radius: 10px;
+}
+
+.avatar-choices-input[type=radio]:checked + .avatar-choices-label .avatar-choice-btn{
+    border: 2px solid var(--foreground-rgb);
 }

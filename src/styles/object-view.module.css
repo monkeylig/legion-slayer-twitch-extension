@@ -1,0 +1,127 @@
+.icon-display {
+    position: relative;
+    display: flex;
+    height: 206px;
+    padding: 5px;
+    justify-content: center;
+    align-items: center;
+    background: var(--background-deep-rgb);
+    pointer-events: none;
+}
+
+.page-controls {
+    display: flex;
+    height: 56px;
+    padding: 10px;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid #FFF;
+}
+
+.action-btn {
+    padding: 10px;
+    width: 89px;
+}
+
+.pricing {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2px;
+    font-size: 1.5em;
+}
+
+.currency {
+    position: relative;
+    width: 25px;
+    height: 25px;
+}
+
+.amount-input {
+    width: 70px;
+}
+
+.item-data {
+    display: flex;
+    flex-direction: column;
+    align-items: center;;
+    gap: 10px;
+    width: inherit;
+    padding: 0px 10px 10px 5px;
+}
+
+.object-description {
+    align-self: stretch;
+    text-align: center;
+}
+
+.data-title {
+    font-size: 1.25em;
+}
+
+.shop-buy-pending-button {
+    background: var(--blue);
+    box-shadow: none;
+}
+
+.shop-buy-pending-button {
+    background: var(--blue);
+    box-shadow: none;
+}
+
+.shop-buy-done-button {
+    background: var(--green);
+    box-shadow: none;
+}
+
+.shop-buy-error-button {
+    background: var(--red);
+    box-shadow: none;
+}
+
+.live-stats {
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.disabled {
+    background: #eeeeee;
+    color: black;
+    width: auto
+}
+
+.dialog-header {
+    display: flex;
+    height: 32px;
+    justify-content: center;
+    align-items: center;
+    background: var(--blue);
+    color: var(--foreground-rgb);
+}
+
+.replaced-ability {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 267px;
+    padding: 5px;
+}
+
+.replaced-ability:nth-child(even) {
+    background: var(--background-rgb);
+}
+
+.replaced-ability:nth-child(odd) {
+    background: var(--background-deep-rgb);
+}
+
+.replace-btn {
+    background: var(--red);
+    padding: 10px;
+}

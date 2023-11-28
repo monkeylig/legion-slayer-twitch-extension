@@ -30,7 +30,6 @@
 
 .health-exp-container {
     display: flex;
-    font-size: 0.625em;
     flex-direction: column;
     align-items: flex-start;
     gap: 3px;
@@ -45,13 +44,50 @@
 .weapon-btn {
     position: relative;
     margin: auto;
-    top: -130px;
-    width: 48px;
+    background: transparent;
+    outline: none;
+    border: none;
+    top: -90px;
+    width: 120px;
     height: 320px;
     transform: rotate(90deg);
     flex-shrink: 0;
+    border-radius: 25px;
+}
+
+.weapon-btn:hover {
+    background: var(--background-deep-rgb);
+}
+
+.weapon-btn:active {
+    background: rgba(0, 0, 0, 0.5);
 }
 
 .weapon-img {
     object-fit: contain;
+    pointer-events: none;
+}
+
+.section-title {
+    font-size: 1.25em;
+}
+
+.labeled-bar {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    flex: 1 0 0;
+    width: 100%;
+}
+
+.meter-label {
+    display: flex;
+    padding: 0px 8px;
+    justify-content: space-between;
+    align-items: flex-end;
+    align-self: stretch;
+}
+
+.bar-value {
+    font-size: 0.75em;
 }

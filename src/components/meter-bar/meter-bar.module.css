@@ -29,4 +29,29 @@
         display: flex;
         justify-content: center;
     }
+
+    .labeled-bar {
+        position: relative;
+        height: 32px;
+        width: 200px;
+    }
+
+    .labeled-bar .meter-bar {
+        position: relative;
+        top: 9px;
+        width: 100%;
+    }
+
+    .label-container {
+        position: absolute;
+        top: 2px;
+        font-size: 12px;
+        text-shadow: 1px 1px 1px #000;
+        display: flex;
+        width: 100%;
+        padding: 0px 8px;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+    }
 }

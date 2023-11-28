@@ -6,10 +6,13 @@
 
   --foreground-rgb: #eeeeee;
   --background-rgb: #3A4750;
+  --background-color: 58, 71, 80;
   --background-deep-rgb: #303841;
   --green: #2FD622;
   --blue: #2291D6;
+  --dark-blue: rgb(21, 100, 150);
   --red: #D72323;
+  --dark-red: #a51919;
 }
 
 /*@media (prefers-color-scheme: dark) {}*/
@@ -36,18 +39,50 @@ html,
 body {
   width: 100vw;
   height: 100vh;
-  overflow-x: hidden;
+  /*overflow-x: hidden;*/
 }
 
 body {
   color: var(--foreground-rgb);
   background: var(--background-rgb);
   font-size: 16px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+body::-webkit-scrollbar {
+  background: transparent;
+  height: 5px;
+  width: 5px;
+}
+
+body::-webkit-scrollbar-thumb {
+  background: var(--blue);
+  border-radius: 10px;
+  height: 5px;
+  width: 5px;
 }
 
 a {
   color: inherit;
   text-decoration: none;
+}
+
+dialog {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border: 2px solid var(--foreground-rgb);
+  background: var(--background-rgb);
+  border-radius: 10px;
+  box-shadow: 0 5px 30px 0 rgba(0, 0, 0, 0.1);
+  color: var(--foreground-rgb)
+}
+
+dialog::backdrop {
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 10;
 }
 
 @media (prefers-color-scheme: dark) {
