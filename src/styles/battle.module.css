@@ -25,6 +25,17 @@
     flex-shrink: 0;
     height: 32px;
     background: var(--background-deep-rgb);
+    padding: 0px 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.options-btn {
+    padding: 5px 15px;
+    border-radius: 25px;
+    background: #D6A022;
 }
 
 .header {
@@ -117,4 +128,23 @@
     height: 100%;
     align-self: stretch;
     background: var(--background-rgb);
+}
+
+.battle-controls {
+    height: 100%;
+    padding: 5px;
+}
+
+.battle-controls-frame {
+    height: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
+    gap: 2px;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.battle-btn {
+    border-radius: 0;
 }

@@ -3,8 +3,12 @@ import battleStyle from "@/styles/battle.module.css"
 import Image from "next/image";
 import { useRouter } from "next/router";
 import LabeledMeterBar from "@/components/meter-bar/labeled-meter-bar";
+import { useState } from "react";
+import Button from "@/components/button/button";
+import colors from "@/utilities/colors";
 
 export default function Battle() {
+    const [controlMode, setControlMode] = useState('battle');
     const router = useRouter();
     const battleState = JSON.parse(router.query.battleState);
     return (
@@ -28,10 +32,11 @@ export default function Battle() {
                     </div>
                 </div>
                 <div className={battleStyle['controls']}>
-
+                    {controlMode === 'battle' && <BattleControls player={battleState.player}/>}
                 </div>
                 <div className={battleStyle['options']}>
-
+                    <Button className={battleStyle['options-btn']}>Escape</Button>
+                    <Button className={battleStyle['options-btn']}>Items</Button>
                 </div>
             </div>
         </>
@@ -86,4 +91,33 @@ function APTracker({apNumber}) {
             </div>
         </div>
     );
+}
+
+function BattleControls({player}) {
+    if (!player) {
+        return;
+    }
+    const strikeButtonStyle = {
+        background: 'var(--foreground-rgb)',
+        color: 'black'
+    };
+
+    const abilityButtons = player.abilities.map((ability, index) => {
+        const style = {
+            background: colors.getElementalColor(ability.elements[0])
+        };
+        return <Button style={style} className={battleStyle['battle-btn']}>{ability.name}</Button>;
+    });
+    return (
+        <div className={battleStyle['battle-controls']}>
+            <div className={battleStyle['battle-controls-frame']}>
+                <Button style={strikeButtonStyle} className={battleStyle['battle-btn']}>Strike</Button>
+                {abilityButtons}
+            </div>
+        </div>
+    )
+}
+
+function TypeWriter({}) {
+
 }
