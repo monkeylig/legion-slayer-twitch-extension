@@ -200,10 +200,6 @@ function AbilityData({ability, requirement, owned, abilityBookId, abilityIndex, 
     const unlocked = requirement && requirement.count >= requirement.requiredCount && owned;
     const equipped = player.abilities.find(equippedAbility => equippedAbility.name === ability.name) != undefined;
 
-    if(ability.type === 'magical') {
-        nameStyle = {color: colors.blue};
-    }
-
     const getDialog = () => document.querySelector(`#ability-replace-dialog-${abilityIndex}`); 
     const equipAbility = async () => {
         if(player.abilities.length >= MAX_ABILITIES) {

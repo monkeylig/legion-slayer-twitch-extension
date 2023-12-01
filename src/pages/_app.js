@@ -10,9 +10,9 @@ const zenDots = Zen_Dots({
 
 export default function App({ Component, pageProps }) {
   useEffect(() => {
-    /*window.Twitch.ext.onAuthorized((auth) => {
+    window.Twitch.ext.onAuthorized((auth) => {
       frontendContext.update(auth.userId, auth.channelId);
-    });*/
+    });
   }, []);
 
   return (

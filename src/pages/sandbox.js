@@ -19,7 +19,7 @@ export default function Sandbox() {
                 <link rel="icon" href="/favicon.ico"/>
             </Head>
             <HeaderBar title='Sandbox'/>
-            <IntAnimTest/>
+            <TypeWriterTest/>
         </>
     );
 }
@@ -28,8 +28,12 @@ function TypeWriterTest() {
     const text1 = "Waiting for a chance to make a cool animation!";
     const text2 = "Wow! this animation is pretty cool!";
     const [animText, setAnimText] = useState(text1);
+    const [doneText, setDoneText] = useState();
 
-    const text = useTypeWriterAnimation(animText, 15);
+    const onAnimationEnd = () => {
+        setDoneText('done')
+    };
+    const text = useTypeWriterAnimation(animText, 15, onAnimationEnd);
 
     return (
         <>
@@ -37,6 +41,7 @@ function TypeWriterTest() {
             <button onClick={() => {setAnimText(text2)}}>Animation text 2</button>
             <div className={sandboxStyle['container']}>
                 {text}
+                {doneText && <div>{doneText}</div>}
             </div>
         </>
     );

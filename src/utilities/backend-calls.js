@@ -78,7 +78,7 @@ function startBattle(playerId, gameId, monsterId, fallbackMonster) {
     return backendCall(endpoint_url('start_battle', `playerId=${playerId}`, `gameId=${gameId}`, `monsterId=${monsterId}`), 'POST', {fallbackMonster});
 }
 
-function battleAction(battleId, actionRequest) {
+async function battleAction(battleId, actionRequest) {
     const queryStrings = [`battleId=${battleId}`, `actionType=${actionRequest.actionType}`];
     
     if(actionRequest.hasOwnProperty('abilityName')) {
@@ -87,8 +87,9 @@ function battleAction(battleId, actionRequest) {
     else if(actionRequest.hasOwnProperty('itemName')) {
         queryStrings.push(`itemName=${actionRequest.itemName}`);
     }
-
-    return backendCall(endpoint_url('battle_action', ...queryStrings), 'POST');
+    const battleUpdate = await backendCall(endpoint_url('battle_action', ...queryStrings), 'POST')
+    frontendContext.setPlayer(battleUpdate.updatedPlayer);
+    return battleUpdate;
 }
 
 async function equipWeapon(playerId, weaponId) {

@@ -1,4 +1,4 @@
-export default function Dialog({id='', className='', children}) {
+export default function Dialog({open, id='', className='', children}) {
 
     const onClick = (e) => {
         if (e.currentTarget !== e.target){
@@ -16,5 +16,5 @@ export default function Dialog({id='', className='', children}) {
             dialog.close();
           }
     };
-    return <dialog onClick={onClick} id={id} className={className}>{children}</dialog>
+    return <dialog open={open} onClick={onClick} id={id} className={className}>{children}</dialog>
 }

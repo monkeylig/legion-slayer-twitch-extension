@@ -1,7 +1,7 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import useAnimation from "./useAnimation";
 
-export default function useNumberAnimation(startNum, endNum, duration) {
+export default function useNumberAnimation(startNum, endNum, duration, onAnimationEnd) {
     const [num, setNum] = useState(startNum);
 
     const animTick = useCallback((timeElapsed, totalTime) => {
@@ -9,9 +9,20 @@ export default function useNumberAnimation(startNum, endNum, duration) {
         const max = Math.max(startNum, endNum);
         const newNum = Math.max(min,
             Math.min(max, startNum + totalTime/duration * (endNum - startNum)));
-        setNum(newNum);
+
+        if(newNum !== num) {
+            setNum(newNum);
+        }
+
+        if(newNum === endNum) {
+            onAnimationEnd?.();
+        }
     }, [num, startNum, endNum, duration]);
 
-    useAnimation(animTick, num != endNum, [startNum, endNum, duration]);
+    useEffect(()=>{
+        setNum(startNum);
+    }, [startNum]);
+
+    useAnimation(animTick, num !== endNum, [startNum, endNum, duration]);
     return num;
 }
