@@ -45,6 +45,14 @@
     border-radius: 5px;
 }
 
+.bag-claim-btn {
+    background: var(--blue);
+    padding: 0px 8px;
+    height: 18px;
+    font-size: inherit;
+    border-radius: 5px;
+}
+
 .currency-icon {
     position: relative;
     width: 13px;

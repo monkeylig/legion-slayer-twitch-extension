@@ -27,6 +27,16 @@
 .ability-view {
     display: flex;
     flex-direction: column;
+    gap: 5px;
     align-items: center;
     align-self: stretch;
+}
+
+.ability-title {
+    display: flex;
+    padding: 5px 10px;
+    align-items: center;
+    font-size: 1.25em;
+    border-radius: 10px;
+    background: var(--background-deep-rgb);
 }

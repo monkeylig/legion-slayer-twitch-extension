@@ -84,8 +84,8 @@ async function battleAction(battleId, actionRequest) {
     if(actionRequest.hasOwnProperty('abilityName')) {
         queryStrings.push(`abilityName=${actionRequest.abilityName}`);
     }
-    else if(actionRequest.hasOwnProperty('itemName')) {
-        queryStrings.push(`itemName=${actionRequest.itemName}`);
+    else if(actionRequest.hasOwnProperty('itemId')) {
+        queryStrings.push(`itemId=${actionRequest.itemId}`);
     }
     const battleUpdate = await backendCall(endpoint_url('battle_action', ...queryStrings), 'POST')
     frontendContext.setPlayer(battleUpdate.updatedPlayer);
@@ -145,8 +145,20 @@ async function moveObjectFromInventoryToBag(playerId, pageId, objectId) {
     return collections;
 }
 
+async function claimObject(playerId, objectId) {
+    const player = await backendCall(endpoint_url('claim_object', `playerId=${playerId}`, `objectId=${objectId}`), 'POST');
+    frontendContext.setPlayer(player);
+    return player;
+}
+
 async function getInventoryPage(playerId, pageId) {
     return backendCall(endpoint_url('get_inventory_page', `playerId=${playerId}`, `pageId=${pageId}`));
+}
+
+async function productPurchase(playerId, productSku, transactionReceipt) {
+    const player = await backendCall(endpoint_url('product_purchase', `playerId=${playerId}`, `productSku=${productSku}`, `transactionReceipt=${transactionReceipt}`), 'POST');
+    frontendContext.setPlayer(player);
+    return player;
 }
 
 const backend = {
@@ -168,7 +180,9 @@ const backend = {
     buy,
     moveObjectFromBagToInventory,
     moveObjectFromInventoryToBag,
-    getInventoryPage
+    claimObject,
+    getInventoryPage,
+    productPurchase
 };
 
 export default backend;

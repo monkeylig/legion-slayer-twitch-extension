@@ -13,6 +13,7 @@ import frontendContext from '@/utilities/frontend-context';
 import AsyncButton from '@/components/button/async-button';
 import AbilityView from '@/components/stat-sheet/ability-view';
 import Dialog from '@/components/dialog/dialog';
+import Currency from '@/components/currency/currency';
 
 const MAX_ABILITIES = 5;
 
@@ -22,14 +23,14 @@ export default function ObjectView() {
     const controlMode = router.query.mode;
     const object = JSON.parse(router.query.object);
     let container = 'content';
-    let owned = false;
+
     if(controlMode === 'shop') {
         container = 'product';
     }
 
-    if(controlMode === 'bag' || controlMode === 'inventory') {
-        owned = true;
-    }
+    const inBag = player.bag.objects.find(bagObject => {
+        return bagObject.id === object.id;
+    }) !== undefined;
 
     let numInBag = 0;
     if(object.type === 'item') {
@@ -58,20 +59,21 @@ export default function ObjectView() {
             <div className={objectViewStyle['icon-display']}>
                 <Image style={{objectFit: 'contain', ...tiltStyle}} fill src={object[container].icon}/>
                 <div className={objectViewStyle['live-stats']}>
-                    {router.query.mode === 'shop' && <Currency style={{fontSize: '1em'}} amount={player.coins} iconWidth={17} iconHeight={17}/>}
+                    {router.query.mode === 'shop' && <Currency>{player.coins}</Currency>}
                     {(numInBag != 0 && object.type === 'item') && <span>x{numInBag} in Bag</span>}
-                    {(object[container].count != 0 && controlMode === 'inventory') && <span>x{object[container].count}</span>}
+                    {(object[container].count && controlMode === 'inventory') && <span>x{object[container].count}</span>}
                 </div>
             </div>
             <div className={objectViewStyle['page-controls']}>
                 {controlMode === 'shop' && <ShopControls object={object} onBuy={(player) => setPlayer(player)}/>}
-                {controlMode === 'bag' && <BagControls object={object} onPlayerUpdate={updatePlayer}/>}
+                {controlMode === 'bag' && <BagControls inBag={inBag} object={object} onPlayerUpdate={updatePlayer}/>}
+                {controlMode === 'claim' && <ClaimControls object={object} onPlayerUpdate={updatePlayer}/>}
                 {controlMode === 'inventory' && <InventoryControls object={object} pageId={router.query.pageId} onMove={onMoveToBag}/>}
             </div>
             <div className={objectViewStyle['item-data']}>
                 <span className={objectViewStyle['object-description']}>{object[container].description}</span>
                 {object.type === 'weapon' && <WeaponData weapon={object[container]} />}
-                {object.type === 'book' && <BookData book={object[container]} bookId={object.id} owned={owned} onPlayerUpdate={updatePlayer}/>}
+                {object.type === 'book' && <BookData book={object[container]} bookId={object.id} inBag={inBag} onPlayerUpdate={updatePlayer}/>}
             </div>
         </>
     );
@@ -92,36 +94,18 @@ function ShopControls({object, onBuy}) {
     };
     return (
         <>
-            <div className={objectViewStyle['pricing']}>
-                <span>{object.price * amount}</span>
-                <span className={objectViewStyle['currency']}>
-                    <Image style={{objectFit: 'contain'}} fill src='coin.png'/>
-                </span>
-            </div>
+            <Currency size={24}>{object.price * amount}</Currency>
             <ShopBuyButton productId={object.id} amount={amount} onBuy={onBuy}>Buy</ShopBuyButton>
             {object.type === 'item' && <TextBox type='number' value={amount} min="1" max="100" label='amount' className={objectViewStyle['amount-input']} onInput={onChange}></TextBox>}
         </>
     );
 }
 
-function BagControls({object, onPlayerUpdate}) {
+function BagControls({object, inBag, onPlayerUpdate}) {
     const player = frontendContext.get().player;
-    let buttonEnabled = true;
-    let disabledStyle = {
-        background: '#eeeeee',
-        color: 'black',
-        width: 'auto'
-    };
-    if (!player.bag.objects.find(bagObject => bagObject.id === object.id)) {
-        buttonEnabled = false;
-    }
-    const onClick = () => {
-        backend.moveObjectFromBagToInventory(player.id, object.id)
-        .then(player => {
-            if(onPlayerUpdate) {
-                onPlayerUpdate(player);
-            }
-        });
+    const onClick = async () => {
+        const newPlayer = await backend.moveObjectFromBagToInventory(player.id, object.id);
+        onPlayerUpdate?.(newPlayer);
     };
     const equipWeapon = async () => {
         const playerData = await backend.equipWeapon(player.id, object.id);
@@ -129,36 +113,70 @@ function BagControls({object, onPlayerUpdate}) {
             onPlayerUpdate(playerData);
         }
     };
+
+    let moveText;
+    if(inBag) {
+        console.log('move to inventory');
+        moveText = 'move to inventory';
+    }
+    else if(!inBag) {
+        console.log('not in bag');
+        moveText = 'not in bag';
+    }
+    
     return (
         <>
-            {(object.type === 'weapon' && buttonEnabled) && <AsyncButton className={objectViewStyle['action-btn']} onClick={equipWeapon}>equip</AsyncButton>}
-            {(!buttonEnabled && object.content.name === player.weapon.name) && <Button style={disabledStyle} className={objectViewStyle['action-btn']} >equipped</Button>}
-            {buttonEnabled && <Button style={{background: colors.red}} className={objectViewStyle['action-btn']} onClick={onClick}>move</Button>}
-            {!buttonEnabled && <Button style={disabledStyle} className={`${objectViewStyle['disabled']} ${objectViewStyle['action-btn']}`} >not in bag</Button>}
+            {object.type === 'weapon' &&
+                <AsyncButton disabled={!inBag} className={objectViewStyle['action-btn']} onClick={equipWeapon}>
+                    {object.content.name === player.weapon.name ? 'equipped' : 'equip'}
+                </AsyncButton>}
+
+            <AsyncButton disabled={!inBag} style={{background: colors.red}} className={objectViewStyle['action-btn']} onClick={onClick}>
+                {moveText}
+            </AsyncButton>
+        </>
+    );
+}
+
+function ClaimControls({object, onPlayerUpdate}) {
+    const player = frontendContext.get().player;
+    let buttonEnabled = true;
+    if (!player.lastDrops.objects.find(claimObject => claimObject.id === claimObject.id)) {
+        buttonEnabled = false;
+    }
+    const onClick = () => {
+        backend.claimObject(player.id, object.id)
+        .then(player => {
+            if(onPlayerUpdate) {
+                onPlayerUpdate(player);
+            }
+        });
+    };
+    return (
+        <>
+            { buttonEnabled && <Button style={{background: colors.blue}} className={objectViewStyle['action-btn']} onClick={onClick}>claim</Button> }
+            { !buttonEnabled && <Button disabled style={{background: colors.blue}} className={objectViewStyle['action-btn']} onClick={onClick}>claimed!</Button> }
         </>
     );
 }
 
 function InventoryControls({object, pageId, onMove}) {
     let [buttonEnabled, setButtonEnabled] = useState(true);
-    let disabledStyle = {
-        background: '#eeeeee',
-        color: 'black',
-        width: 'auto'
-    };
-    const onClick = () => {
-        backend.moveObjectFromInventoryToBag(frontendContext.get().player.id, pageId, object.id)
-        .then(player => {
-            if(onMove) {
-                setButtonEnabled(false);
-                onMove(player);
-            }
-        });
+
+    const bagFull = frontendContext.get().player.bag.objects.length >= frontendContext.get().player.bag.capacity;
+    let buttonText = bagFull ? 'bag full' : 'add to bag';
+    if(!buttonEnabled) {
+        buttonText = 'not in inventory';
+    }
+
+    const onClick = async () => {
+        const update = await backend.moveObjectFromInventoryToBag(frontendContext.get().player.id, pageId, object.id);
+        setButtonEnabled(false);
+        onMove?.(update.player);
     };
     return (
         <>
-            {buttonEnabled && <Button className={objectViewStyle['action-btn']} onClick={onClick}>add</Button>}
-            {!buttonEnabled && <Button style={disabledStyle} className={objectViewStyle['action-btn']} >not in inventory</Button>}
+            <AsyncButton disabled={bagFull} className={objectViewStyle['action-btn']} onClick={onClick}>{buttonText}</AsyncButton>
         </>
     );
 }
@@ -184,9 +202,9 @@ function WeaponData({weapon}) {
     );
 }
 
-function BookData({book, owned, bookId, onPlayerUpdate}) {
+function BookData({book, inBag, bookId, onPlayerUpdate}) {
     const abilityViews = book.abilities.map((abilityEntry, index) => {
-        return <AbilityData ability={abilityEntry.ability} requirement={abilityEntry.requirements[0]} owned={owned} abilityBookId={bookId} abilityIndex={index} onPlayerUpdate={onPlayerUpdate} key={index}/>
+        return <AbilityData ability={abilityEntry.ability} requirement={abilityEntry.requirements[0]} inBag={inBag} abilityBookId={bookId} abilityIndex={index} onPlayerUpdate={onPlayerUpdate} key={index}/>
     });
     return (
         <>
@@ -195,9 +213,9 @@ function BookData({book, owned, bookId, onPlayerUpdate}) {
     );
 }
 
-function AbilityData({ability, requirement, owned, abilityBookId, abilityIndex, onPlayerUpdate = ()=>{}}) {
+function AbilityData({ability, requirement, inBag, abilityBookId, abilityIndex, onPlayerUpdate = ()=>{}}) {
     const player = frontendContext.get().player;
-    const unlocked = requirement && requirement.count >= requirement.requiredCount && owned;
+    const unlocked = requirement && requirement.count >= requirement.requiredCount;
     const equipped = player.abilities.find(equippedAbility => equippedAbility.name === ability.name) != undefined;
 
     const getDialog = () => document.querySelector(`#ability-replace-dialog-${abilityIndex}`); 
@@ -218,9 +236,9 @@ function AbilityData({ability, requirement, owned, abilityBookId, abilityIndex, 
         dialog.close();
     }
 
-    const replacedAbilities = player.abilities.map(replacedAbility => {
+    const replacedAbilities = player.abilities.map((replacedAbility, index) => {
         return (
-            <div className={objectViewStyle['replaced-ability']}>
+            <div key={index} className={objectViewStyle['replaced-ability']}>
                 <span>{replacedAbility.name}</span>
                 <AsyncButton onClick={() => {replaceAbility(replacedAbility.name)}} className={objectViewStyle['replace-btn']}>replace</AsyncButton>
             </div>);
@@ -230,8 +248,8 @@ function AbilityData({ability, requirement, owned, abilityBookId, abilityIndex, 
             <AbilityView ability={ability}>
                 {requirement && <span style={{textAlign: 'center'}}>{requirement.description}</span>}
                 {(!unlocked && requirement) && <span style={{textAlign: 'center', color: colors.red}}>{requirement.count}/{requirement.requiredCount}</span>}
-                {(unlocked && !equipped) && <AsyncButton className={objectViewStyle['action-btn']} onClick={equipAbility}>equip</AsyncButton>}
-                {equipped && <Button className={`${objectViewStyle['disabled']} ${objectViewStyle['action-btn']}`}>equipped</Button>}
+                {(unlocked && !equipped && inBag) && <AsyncButton className={objectViewStyle['action-btn']} onClick={equipAbility}>equip</AsyncButton>}
+                {equipped && <Button disabled className={`${objectViewStyle['action-btn']}`}>equipped</Button>}
             </AbilityView>
             <Dialog id={`ability-replace-dialog-${abilityIndex}`}>
                 <div className={objectViewStyle['dialog-header']}>Replace Ability</div>
@@ -285,22 +303,4 @@ function ShopBuyButton({productId, amount, children, onBuy}) {
         }
     }
     return <Button className={`${objectViewStyle['action-btn']} ${style}`} onClick={onClick}>{content}</Button>
-}
-
-function Currency({amount, iconWidth, iconHeight, style}) {
-    let iconStyle;
-    if(iconWidth && iconHeight) {
-        iconStyle = {
-            width: `${iconWidth}px`,
-            height: `${iconHeight}px`
-        };
-    }
-    return (
-        <div style={style} className={objectViewStyle['pricing']}>
-            <span>{amount}</span>
-            <span style={iconStyle} className={objectViewStyle['currency']}>
-                <Image style={{objectFit: 'contain'}} fill src='coin.png'/>
-            </span>
-        </div>
-    );
 }

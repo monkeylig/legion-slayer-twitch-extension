@@ -15,6 +15,7 @@ import useIntAnimation from "@/utilities/animation/useIntAnimation";
 import useNumberAnimation from "@/utilities/animation/useNumberAnimation";
 import { resolve } from "styled-jsx/css";
 import MeterBar from "@/components/meter-bar/meter-bar";
+import Icon from "@/components/icon/icon";
 
 export default function Battle() {
     const router = useRouter();
@@ -24,7 +25,7 @@ export default function Battle() {
     const onHealthAnimationEnd = useRef();
     const strikeAnim = useRef(initialBattleState.strikeAnim);
     const [battleState, setBattleState] = useState(initialBattleState);
-    const [controlMode, setControlMode] = useState('items');
+    const [controlMode, setControlMode] = useState('battle');
     const [optionsEnabled, setOptionsEnabled] = useState(true);
     const [typeWriterMessage, setTypeWriterMessage] = useState('');
     const [playerEffectAnim, setPlayerEffectAnim] = useState();
@@ -45,12 +46,18 @@ export default function Battle() {
         else if(battleState.monster.id === id) { return battleState.monster;}
     }
 
-    const healthAnimationCommand = (healthChange, player) => {
-        return new Promise((resolve, reject) => {
-            player.health += healthChange;
+    const healthAnimationCommand = (healthChange, player, protectionChange, type) => {
+        if(protectionChange) {
+            player.protection[type] += protectionChange;
             updateBattleState();
-            onHealthAnimationEnd.current = resolve;
-        });
+        }
+        if(healthChange) {
+            return new Promise((resolve, reject) => {
+                player.health += healthChange;
+                updateBattleState();
+                onHealthAnimationEnd.current = resolve;
+            });
+        }
     }
 
     const playerEffectAnimationCommand = (animation, playerId) => {
@@ -82,7 +89,6 @@ export default function Battle() {
     };
     const runBattleIteration = async (battleUpdate) => {
         const steps = battleUpdate.steps;
-
         for(const step of steps) {
             switch(step.type) {
                 case 'battle_end': {
@@ -100,11 +106,41 @@ export default function Battle() {
                 }
                 case 'damage': {
                     const target = getPlayerById(step.targetId);
-                    await healthAnimationCommand(-step.damage, target);
+                    await healthAnimationCommand(-step.damage, target, -step.protectedDamage, step.protectedDamageType);
+                    break;
+                }
+                case 'revive': {
+                    const target = getPlayerById(step.targetId);
+                    target.autoRevive = 0;
+                    updateBattleState();
+                    await healthAnimationCommand(step.healAmount, target);
+                    break;
+                }
+                case 'heal': {
+                    const target = getPlayerById(step.targetId);
+                    await healthAnimationCommand(step.healAmount, target);
                     break;
                 }
                 case 'apCost': {
-                    battleState.player.ap -= step.apCost;
+                    const target = getPlayerById(step.targetId);
+                    target.ap -= step.apCost;
+                    updateBattleState();
+                    break;
+                }
+                case 'apGain': {
+                    const target = getPlayerById(step.targetId);
+                    target.ap += step.apGain;
+                    updateBattleState();
+                    break;
+                }
+                case 'protection': {
+                    const target = getPlayerById(step.targetId);
+                    await healthAnimationCommand(0, target, step.protection.value, step.protection.type);
+                    break;
+                }
+                case 'readyRevive': {
+                    const target = getPlayerById(step.targetId);
+                    target.autoRevive = step.autoRevive;
                     updateBattleState();
                     break;
                 }
@@ -138,9 +174,21 @@ export default function Battle() {
 
         commitBattleAction({actionType: 'ability', abilityName: ability.name});
 
-    }
+    };
 
-    const onItemButtonClicked = () => {}
+    const onItemClicked = (item) => {
+        commitBattleAction({actionType: 'item', itemId: item.id});
+    };
+
+    const onItemButtonClicked = () => {
+        if(controlMode === 'battle') {
+            setControlMode('items');
+        }
+        else if (controlMode === 'items') {
+            setControlMode('battle');
+        }
+    };
+
     const setBattleUIEnabled = (value) => {
         if(value) {
             setControlMode('battle');
@@ -169,9 +217,18 @@ export default function Battle() {
         .catch(error => {
             debugger
             setControlMode('error');
+            waitCommand(1000)
+            .then(() => {
+                setBattleUIEnabled(true);
+            });
         });
     };
 
+    const battleItems = battleState.player.bag.objects.filter(object => {
+        return object.type === 'item'
+    });
+
+    const itemStyle = controlMode === 'items' ? {background: 'transparent', border: `2px solid ${colors.orange}`} : {};
     return (
         <>
             <Head>
@@ -188,7 +245,7 @@ export default function Battle() {
                         <BattleHeader player={battleState.monster}/>
                     </div>
                     <div className={battleStyle['avatars']}>
-                        <BattleAvatar player={battleState.player} effectAnimation={playerEffectAnim} showAP
+                        <BattleAvatar player={battleState.player} effectAnimation={playerEffectAnim} showAP showReviveActive
                             onHealthAnimationEnd={onHealthAnimationEnd.current} onEffectAnimationEnd={onEffectAnimationEnd.current}/>
                         <BattleAvatar player={battleState.monster} effectAnimation={monsterEffectAnim} rightSide
                             onHealthAnimationEnd={onHealthAnimationEnd.current} onEffectAnimationEnd={onEffectAnimationEnd.current}/>
@@ -196,9 +253,9 @@ export default function Battle() {
                 </div>
                 <div className={battleStyle['controls']}>
                     {controlMode === 'battle' && <BattleControls player={battleState.player} onAbilityClicked={onAbilityClicked} onStrikeClicked={() => {commitBattleAction({actionType: 'strike'})}}/>}
-                    {controlMode === 'items' && <ItemControls items={[{content: {name: 'Potion', count: 3, icon: 'potion.webp'}}]}/>}
+                    {controlMode === 'items' && <ItemControls items={battleItems} onItemClicked={onItemClicked}/>}
                     {controlMode === 'waiting' && <MessageControls>Waiting...</MessageControls>}
-                    {controlMode === 'error' && <MessageControls>Sorry, Something went wrong. Try refreshing the page.</MessageControls>}
+                    {controlMode === 'error' && <MessageControls>Sorry, Something went wrong</MessageControls>}
                     {controlMode === 'typeWriter' && <TypeWriter onEnd={onTypeWriteEnd.current}>{typeWriterMessage}</TypeWriter>}
                     {controlMode === 'exit' && <ExitControls onExitClicked={exitBattle}>{typeWriterMessage}</ExitControls>}
                 </div>
@@ -206,7 +263,7 @@ export default function Battle() {
                     {optionsEnabled &&
                         <>
                             <Button className={battleStyle['options-btn']} onClick={()=>commitBattleAction({actionType: 'escape'})}>Escape</Button>
-                            <Button className={battleStyle['options-btn']}>Items</Button>
+                            <Button style={itemStyle} className={battleStyle['options-btn']} onClick={onItemButtonClicked}>Items</Button>
                         </>
                     }
                 </div>
@@ -235,7 +292,7 @@ function BattleHeader({player}) {
     );
 }
 
-function BattleAvatar({player, showAP, rightSide, effectAnimation, onHealthAnimationEnd, onEffectAnimationEnd}) {
+function BattleAvatar({player, showAP, rightSide, effectAnimation, showReviveActive, onHealthAnimationEnd, onEffectAnimationEnd}) {
     const oldHealth = useRef(player.health);
 
     const onHealthAnimEnd = useCallback(() => {
@@ -250,13 +307,22 @@ function BattleAvatar({player, showAP, rightSide, effectAnimation, onHealthAnima
     };
 
     const leftSideSpriteStyle = {
-        transform: 'translate(calc(-50% + 20px), calc(-50%))'
+        transform: 'translate(calc(-50% + 20px), calc(-50%)) scaleX(-1)'
     };
 
+    const protectionText = [];
+    if(player.protection.magical > 0) {
+        protectionText.push(<span style={{color: colors.teal}} key='mProtec'>{player.protection.magical}</span>);
+    }
+
+    if(player.protection.physical > 0) {
+        protectionText.push(<span style={{color: colors.orange}} key='pProtec'>{player.protection.physical}</span>);
+    }
+    const healthBottom = <div style={{display: 'flex', gap: '10px'}}>{protectionText}</div>
     return (
         <div className={battleStyle['battle-avatar']}>
             <Image fill src={player.avatar} className={battleStyle['avatar-image']}/>
-            <LabeledMeterBar progress={currentHealth/player.maxHealth} className={battleStyle['avatar-health-bar']}>{Math.floor(currentHealth)}</LabeledMeterBar>
+            <LabeledMeterBar progress={currentHealth/player.maxHealth} bottomLabel={healthBottom} className={battleStyle['avatar-health-bar']}>{Math.floor(currentHealth)}</LabeledMeterBar>
             {showAP && <APTracker apNumber={player.ap}/>}
 
             {(rightSide && effectAnimation) && <Sprite style={rightSideSpriteStyle} columns={effectAnimation.columns} rows={effectAnimation.rows} spriteSheet={effectAnimation.spriteSheet}
@@ -266,6 +332,30 @@ function BattleAvatar({player, showAP, rightSide, effectAnimation, onHealthAnima
             {(!rightSide && effectAnimation) && <Sprite style={leftSideSpriteStyle} columns={effectAnimation.columns} rows={effectAnimation.rows} spriteSheet={effectAnimation.spriteSheet}
                 frameWidth={effectAnimation.frameWidth} frameHeight={effectAnimation.frameHeight} className={battleStyle['avatar-sprite']} duration={effectAnimation.duration}
                 onAnimationEnd={onEffectAnimationEnd}/>}
+            
+            <StatusEffects statusEffects={player.statusEffects}/>
+            {(showReviveActive && player.autoRevive > 0) && <Icon src='phoenix_down.webp' className={battleStyle['revive-ready']}/>}
+        </div>
+    );
+}
+
+function StatusEffects({statusEffects}) {
+    const indicators = [];
+    for(const effect in statusEffects) {
+        const name = statusEffects[effect].name;
+        indicators.push(<StatusEffect key={effect} color={colors.getElementalColor(name)}>{name}</StatusEffect>)
+    }
+    return (
+        <div className={battleStyle['status-effects']}>
+            {indicators}
+        </div>
+    );
+}
+
+function StatusEffect({color, children}) {
+    return (
+        <div style={{background: color}} className={battleStyle['status-effect']}>
+            <span>{children}</span>
         </div>
     );
 }
@@ -323,14 +413,15 @@ function BattleControls({player, onStrikeClicked, onAbilityClicked}) {
     }
     const strikeButtonStyle = {
         background: 'var(--foreground-rgb)',
-        color: 'black'
+        color: 'black',
+        textShadow: 'none'
     };
 
     const abilityButtons = player.abilities.map((ability, index) => {
         const style = {
             background: colors.getElementalColor(ability.elements[0])
         };
-        return <Button style={style} className={battleStyle['battle-btn']} onClick={()=>{onAbilityClicked?.(ability)}}>{ability.name}</Button>;
+        return <Button key={index} style={style} className={battleStyle['battle-btn']} onClick={()=>{onAbilityClicked?.(ability)}}>{ability.name}</Button>;
     });
     const strikeText = player.strikeLevel == 2 ? player.weapon.strikeAbility.name : 'Strike';
     return (
@@ -376,12 +467,24 @@ function ExitControls({onExitClicked}) {
     );
 }
 
-function ItemControls({items}) {
+function ItemControls({items, onItemClicked}) {
+
+    const itemButtons = items.map(item => {
+        return (
+                <div key={item.id} style={{position: 'relative'}}>
+                    <div className={battleStyle['item-count-area']}>
+                        <span className={battleStyle['item-count']}>{item.content.count}</span>
+                    </div>
+                    <div className={battleStyle['battle-item-content']} onClick={()=>{onItemClicked?.(item)}}>
+                        <Icon style={{flexShrink: '0'}} src={item.content.icon}/>
+                        <span style={{display: 'flex'}}>{item.content.name}</span>
+                    </div>
+                </div>
+        );
+    });
     return (
         <div className={battleStyle['item-controls']}>
-            <div className={battleStyle['battle-item']}>
-                <span>Potion</span>
-            </div>
+            {itemButtons}
         </div>
     );
 }
@@ -488,3 +591,4 @@ function NoHPHelp() {
         </>
     );
 }
+

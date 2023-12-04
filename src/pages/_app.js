@@ -11,7 +11,8 @@ const zenDots = Zen_Dots({
 export default function App({ Component, pageProps }) {
   useEffect(() => {
     window.Twitch.ext.onAuthorized((auth) => {
-      frontendContext.update(auth.userId, auth.channelId);
+      const accountId = window.Twitch.ext.viewer.id ? window.Twitch.ext.viewer.id : auth.userId;
+      frontendContext.update(accountId, auth.channelId);
     });
   }, []);
 

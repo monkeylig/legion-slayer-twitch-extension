@@ -82,7 +82,7 @@ export default function Inventory() {
                 pageId: pageData.id
             }
         };
-        return <InventoryObjectButton tilt={pageObject.type === 'weapon'} label={pageObject.content.name} imageSrc={pageObject.content.icon} key={pageObject.id}
+        return <InventoryObjectButton disableAdd={bagFull} tilt={pageObject.type === 'weapon'} label={pageObject.content.name} imageSrc={pageObject.content.icon} key={pageObject.id}
         onAddClicked={() => moveObjectToBag(pageObject.id)} onClick={()=>{router.push(urlObject)}}/>;
     });
 

@@ -10,6 +10,7 @@ import { useRouter } from 'next/router';
 import frontendContext from '@/utilities/frontend-context';
 import backend from '@/utilities/backend-calls';
 import { useState } from 'react';
+import ClaimObjectButton from '@/components/object-viewers/claim-object-button';
 
 export default function Bag() {
     const router = useRouter();
@@ -17,6 +18,14 @@ export default function Bag() {
 
     const moveObject = (objectId) => {
         backend.moveObjectFromBagToInventory(player.id, objectId)
+        .then(player => {
+            setPlayer(player);
+        })
+        .catch(error => {});
+    };
+
+    const claimObject = (objectId) => {
+        backend.claimObject(player.id, objectId)
         .then(player => {
             setPlayer(player);
         })
@@ -39,6 +48,20 @@ export default function Bag() {
         bagButtons.push(<BagObjectButton empty key={i}/>);
     }
 
+    const unclaimedButtons = player.lastDrops.objects.map(object => {
+        const urlObject = {
+            pathname: '/object-view',
+            query: {
+                object: JSON.stringify(object),
+                mode: 'claim'
+            }
+        };
+        return (
+            <ClaimObjectButton tilt={object.type === 'weapon'} label={object.content.name} imageSrc={object.content.icon} key={object.id}
+                onClaimClicked={() => {claimObject(object.id);}} onClick={()=>{router.push(urlObject)}}/>
+        );
+    });
+
     return (
         <>
             <Head>
@@ -52,7 +75,16 @@ export default function Bag() {
                 <div className={`${bagStyles['bag-viewer']}`}>
                     {bagButtons}
                 </div>
+                {unclaimedButtons.length > 0 &&
+                    <div className={bagStyles['claim-viewer']}>
+                        <span>Drops from the last battle</span>
+                        <div className={bagStyles['unclaimed-objects']}>
+                            {unclaimedButtons}
+                        </div>
+                    </div>
+                }
             </div>
+            <div style={{height: '80px'}}/>
             <Button className={`${bagStyles['inventory-btn']} material-symbols-outlined`} onClick={() => {router.push('/inventory')}}>inventory_2</Button>
         </>
     );
