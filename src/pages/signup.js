@@ -80,7 +80,7 @@ function SignUpRender({gameInfo}) {
             UI: <NameMenu menuControl={menuControl} currentValue={nameChoice.current} onValueUpdated={(value) => nameChoice.current = value}/>
         },
         {
-            title: 'Ebark',
+            title: 'Embark',
             UI: <SendOffScreen menuControl={menuControl} onBeginAdventure={onBeginAdventure}/>
         }
     ];

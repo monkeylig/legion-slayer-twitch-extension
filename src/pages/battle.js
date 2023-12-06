@@ -367,17 +367,18 @@ function Sprite({columns=1, rows=1, frameWidth=1, frameHeight=1, duration=1000, 
         aspectRatio: `${frameWidth} / ${frameHeight}`
     };
 
-    const totalColumnPercentage = columns > 1 ? 100*(1 + 1/(columns-1)) : 100;
-    const totalRowPercentage = rows > 1 ? 100*(1 + 1/(rows-1)) : 100;
-    
     const imageStyle = {
-        objectFit: 'cover',
-        objectPosition: `${totalColumnPercentage*((frame % columns)/(columns))}% ${totalRowPercentage*Math.floor(frame / columns) / rows}%`
+        position: 'absolute',
+        objectFit: 'contain',
+        width: `${100 * columns}%`,
+        height: `${100 * rows}%`,
+        left: `-${100 * (frame % columns)}%`,
+        top: `-${100 * Math.floor(frame / columns)}%`,
     };
 
     return (
         <div style={{...spriteStyle, ...style}} className={`${battleStyle['sprite']} ${className}`}>
-            <Image style={imageStyle} fill src={spriteSheet}/>
+            <Image style={imageStyle} width={frameWidth} height={frameHeight} src={spriteSheet}/>
         </div>
     );
 }
