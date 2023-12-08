@@ -23,6 +23,7 @@ const colors = {
     red: '#D72323',
     green: '#2FD622',
     orange: '#D6A022',
+    grey: '#939292',
     getElementalColor
 };
 

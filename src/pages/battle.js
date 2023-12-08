@@ -83,8 +83,16 @@ export default function Battle() {
     const typeWriterMessageCommand = (message) => {
         return new Promise((resolve, reject) => {
             setControlMode('typeWriter');
-            setTypeWriterMessage(message)
-            onTypeWriteEnd.current = resolve;
+            setTypeWriterMessage(oldText => {
+                if(oldText === message)
+                {
+                    return message + ' ';
+                }
+                return message;
+            });
+            onTypeWriteEnd.current = () => {
+                resolve();
+            };
         });
     };
     const runBattleIteration = async (battleUpdate) => {
@@ -141,6 +149,18 @@ export default function Battle() {
                 case 'readyRevive': {
                     const target = getPlayerById(step.targetId);
                     target.autoRevive = step.autoRevive;
+                    updateBattleState();
+                    break;
+                }
+                case 'gainStatusEffect': {
+                    const target = getPlayerById(step.targetId);
+                    target.statusEffects[step.statusEffect.name] = step.statusEffect;
+                    updateBattleState();
+                    break;
+                }
+                case 'removeStatusEffect': {
+                    const target = getPlayerById(step.targetId);
+                    target.statusEffects[step.statusEffect.name] = null;
                     updateBattleState();
                     break;
                 }
@@ -303,11 +323,11 @@ function BattleAvatar({player, showAP, rightSide, effectAnimation, showReviveAct
     const currentHealth = useNumberAnimation(oldHealth.current, player.health, 500, onHealthAnimEnd);
 
     const rightSideSpriteStyle = {
-        transform: 'translate(calc(-50% - 20px), calc(-50%))'
+        transform: 'translate(calc(-60%), calc(-50%))'
     };
 
     const leftSideSpriteStyle = {
-        transform: 'translate(calc(-50% + 20px), calc(-50%)) scaleX(-1)'
+        transform: 'translate(calc(-40%), calc(-50%)) scaleX(-1)'
     };
 
     const protectionText = [];
@@ -319,17 +339,27 @@ function BattleAvatar({player, showAP, rightSide, effectAnimation, showReviveAct
         protectionText.push(<span style={{color: colors.orange}} key='pProtec'>{player.protection.physical}</span>);
     }
     const healthBottom = <div style={{display: 'flex', gap: '10px'}}>{protectionText}</div>
+
+    const spriteContain = {};
+    if(effectAnimation) {
+        if(effectAnimation.frameHeight > effectAnimation.frameWidth) {
+            spriteContain.height = '100%';
+        }
+        else {
+            spriteContain.width = '200%';
+        }
+    }
     return (
         <div className={battleStyle['battle-avatar']}>
-            <Image fill src={player.avatar} className={battleStyle['avatar-image']}/>
+            <Image alt="avatar" fill src={player.avatar} className={battleStyle['avatar-image']}/>
             <LabeledMeterBar progress={currentHealth/player.maxHealth} bottomLabel={healthBottom} className={battleStyle['avatar-health-bar']}>{Math.floor(currentHealth)}</LabeledMeterBar>
             {showAP && <APTracker apNumber={player.ap}/>}
 
-            {(rightSide && effectAnimation) && <Sprite style={rightSideSpriteStyle} columns={effectAnimation.columns} rows={effectAnimation.rows} spriteSheet={effectAnimation.spriteSheet}
+            {(rightSide && effectAnimation) && <Sprite style={{...rightSideSpriteStyle, ...spriteContain}} columns={effectAnimation.columns} rows={effectAnimation.rows} spriteSheet={effectAnimation.spriteSheet}
                 frameWidth={effectAnimation.frameWidth} frameHeight={effectAnimation.frameHeight} className={battleStyle['avatar-sprite']} duration={effectAnimation.duration}
                 onAnimationEnd={onEffectAnimationEnd}/>}
 
-            {(!rightSide && effectAnimation) && <Sprite style={leftSideSpriteStyle} columns={effectAnimation.columns} rows={effectAnimation.rows} spriteSheet={effectAnimation.spriteSheet}
+            {(!rightSide && effectAnimation) && <Sprite style={{...leftSideSpriteStyle, ...spriteContain}} columns={effectAnimation.columns} rows={effectAnimation.rows} spriteSheet={effectAnimation.spriteSheet}
                 frameWidth={effectAnimation.frameWidth} frameHeight={effectAnimation.frameHeight} className={battleStyle['avatar-sprite']} duration={effectAnimation.duration}
                 onAnimationEnd={onEffectAnimationEnd}/>}
             
@@ -369,7 +399,7 @@ function Sprite({columns=1, rows=1, frameWidth=1, frameHeight=1, duration=1000, 
 
     const imageStyle = {
         position: 'absolute',
-        objectFit: 'contain',
+        objectFit: 'fill',
         width: `${100 * columns}%`,
         height: `${100 * rows}%`,
         left: `-${100 * (frame % columns)}%`,
@@ -378,7 +408,7 @@ function Sprite({columns=1, rows=1, frameWidth=1, frameHeight=1, duration=1000, 
 
     return (
         <div style={{...spriteStyle, ...style}} className={`${battleStyle['sprite']} ${className}`}>
-            <Image style={imageStyle} width={frameWidth} height={frameHeight} src={spriteSheet}/>
+            <Image alt="animation effect" style={imageStyle} width={frameWidth} height={frameHeight} src={spriteSheet}/>
         </div>
     );
 }
@@ -420,7 +450,7 @@ function BattleControls({player, onStrikeClicked, onAbilityClicked}) {
 
     const abilityButtons = player.abilities.map((ability, index) => {
         const style = {
-            background: colors.getElementalColor(ability.elements[0])
+            background: colors.getElementalColor(ability.elements ? ability.elements[0] : null)
         };
         return <Button key={index} style={style} className={battleStyle['battle-btn']} onClick={()=>{onAbilityClicked?.(ability)}}>{ability.name}</Button>;
     });
@@ -538,9 +568,10 @@ function VictoryDialog({id, oldExp, oldExpToNextLevel, newExp, newExpToNextLevel
         const style = drop.type === 'weapon' ? weaponStyle : {};
         return (
             <div key={index} className={battleStyle['drop']}>
+                {drop.content.icon &&
                 <div className={battleStyle['drop-icon']}>
                     <Image style={style} fill src={drop.content.icon}/>
-                </div>
+                </div>}
                 <span>{drop.content.name}</span>
             </div>
         );
@@ -566,7 +597,7 @@ function DefeatDialog({id, onExitClicked}) {
 
 function DrawDialog({id, onExitClicked}) {
     return (
-        <BattleDialog id={id} headerColor={colors.red} headerText='Draw!' onExitClicked={onExitClicked}>
+        <BattleDialog id={id} headerColor={colors.grey} headerText='Draw!' onExitClicked={onExitClicked}>
             <NoHPHelp/>
         </BattleDialog>
     );

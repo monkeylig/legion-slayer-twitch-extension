@@ -236,6 +236,10 @@ function AbilityData({ability, requirement, inBag, abilityBookId, abilityIndex, 
         dialog.close();
     }
 
+    const referencedAbilities = ability.addAbilities?.map((_ability, index) => {
+        return <AbilityView key={index} ability={_ability}/>;
+    });
+
     const replacedAbilities = player.abilities.map((replacedAbility, index) => {
         return (
             <div key={index} className={objectViewStyle['replaced-ability']}>
@@ -246,11 +250,12 @@ function AbilityData({ability, requirement, inBag, abilityBookId, abilityIndex, 
     return (
         <>
             <AbilityView ability={ability}>
-                {requirement && <span style={{textAlign: 'center'}}>{requirement.description}</span>}
+                {(!unlocked && requirement) && <span style={{textAlign: 'center'}}>{requirement.description}</span>}
                 {(!unlocked && requirement) && <span style={{textAlign: 'center', color: colors.red}}>{requirement.count}/{requirement.requiredCount}</span>}
                 {(unlocked && !equipped && inBag) && <AsyncButton className={objectViewStyle['action-btn']} onClick={equipAbility}>equip</AsyncButton>}
                 {equipped && <Button disabled className={`${objectViewStyle['action-btn']}`}>equipped</Button>}
             </AbilityView>
+            {referencedAbilities}
             <Dialog id={`ability-replace-dialog-${abilityIndex}`}>
                 <div className={objectViewStyle['dialog-header']}>Replace Ability</div>
                 {replacedAbilities}
