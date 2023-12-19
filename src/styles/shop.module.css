@@ -7,14 +7,12 @@
 }
 
 .coin-balance {
-    color: var(--green);
     text-align: center;
-    font-size: 12px;
 }
 
 .shop-filter {
     color: var(--foreground-rgb);
-    font-size: 12px;
+    font-size: 0.875em;
 }
 
 .shop-section {
@@ -26,7 +24,47 @@
 
 .shop-section-items {
     display: flex;
+    justify-content: center;
     padding: 10px;
     gap: 5px;
     flex-wrap: wrap;
+}
+
+.get-coins-btn {
+    position: fixed;
+    right: 10px;
+    bottom: 10px;
+    height: 50px;
+    background: var(--orange);
+}
+
+.dialog-header {
+    display: flex;
+    height: 32px;
+    width: 271px;
+    justify-content: center;
+    align-items: center;
+    background: var(--orange);
+    color: var(--foreground-rgb);
+}
+
+.coin-option {
+    display: flex;
+    padding: 5px;
+    justify-content: center;
+}
+
+.add-coin-btn {
+    display: flex;
+    padding: 10px;
+    gap: 2px;
+    justify-content: center;
+    align-items: center;
+    border-radius: 25px;
+    border: 2px solid var(--orange);
+    background: var(--background-deep-rgb);
+}
+
+.add-coin-btn:active {
+    box-shadow: 0px 0px 11px 2px var(--orange) inset;
 }

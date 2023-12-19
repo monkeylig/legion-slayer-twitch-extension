@@ -2,14 +2,12 @@ import Image from "next/image";
 import ObjectButton from "./object-button";
 
 import buttonStyles from "./object-button.module.css"
+import Currency from "../currency/currency";
 
-export default function ShopItemButton({imageSrc="potion.webp",className=''}) {
+export default function ShopItemButton({label="Object Name", pricing=50, imageSrc="potion.webp", tilt=false, className='', onClick}) {
     return (
-        <ObjectButton imageSrc={imageSrc} className={`${className}`}>
-            <div className={buttonStyles['pricing']}>
-                <span>50</span>
-                <span className={buttonStyles['currency-icon']}><Image src='coin.png' fill></Image></span>
-            </div>
+        <ObjectButton tilt={tilt} label={label} imageSrc={imageSrc} className={`${className}`} onClick={onClick}>
+            <Currency size={12} className={buttonStyles['pricing']}>{pricing}</Currency>
         </ObjectButton>
     );
 }

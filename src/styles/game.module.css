@@ -1,12 +1,13 @@
 
 .game-nav {
-    position: absolute;
+    position: fixed;
     display: flex;
     justify-content: space-between;
     align-items: center;
     width: 100%;
     bottom: 6px;
     padding: 5px 10px;
+    z-index: 10;
 }
 
 .nav-button {
@@ -15,6 +16,10 @@
     border-radius: 50%;
     background: var(--blue);
     box-shadow: 0px 0px 4px #000;
+}
+
+.nav-button:active {
+    background: var(--dark-blue);
 }
 
 .profile-bar {
@@ -32,6 +37,10 @@
     border: 0;
     padding-left: 2px;
     font-family: inherit;
+}
+
+.profile-bar:active {
+    box-shadow: 0px 0px 9px 6px rgba(0, 0, 0, 0.25) inset;
 }
 
 .profile-avatar {
@@ -52,4 +61,42 @@
 .health-level-container span {
     text-align: left;
     font-size: 0.9em;
+}
+
+.monster-dialog {
+    display: flex;
+    padding-bottom: 10px;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+}
+
+.monster-avatar {
+    position: relative;
+    width: 271px;
+    height: 141px;
+}
+
+.monster-avatar img {
+    object-fit: cover;
+    object-position: 50% 20%;
+}
+
+.monster-description {
+    font-size: 14px;
+    text-align: center;
+    padding: 0px 2px;
+}
+
+.monster-stats {
+    display: flex;
+    /*width: 217px;*/
+    flex-direction: column;
+    align-items: center;
+}
+
+.fight-btn {
+    background: var(--red);
+    padding: 10px 15px;
+    border-radius: 25px;
 }

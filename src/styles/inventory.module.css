@@ -27,16 +27,17 @@
 .bag-full-notification {
     position: sticky;
     border-radius: 5px;
-    background: var(--green);
+    background: var(--blue);
     padding: 0px 5px;
     top: 5px;
     right: 5px;
     z-index: 5;
     align-self: flex-end;
+    text-shadow: 1px 1px 1px #000;
 }
 
 .page-nav {
-    position: absolute;
+    position: fixed;
     display: flex;
     font-size: 12px;
     bottom: 14px;
