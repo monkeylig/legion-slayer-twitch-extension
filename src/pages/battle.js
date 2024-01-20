@@ -160,7 +160,7 @@ export default function Battle() {
                 }
                 case 'removeStatusEffect': {
                     const target = getPlayerById(step.targetId);
-                    target.statusEffects[step.statusEffect.name] = null;
+                    delete target.statusEffects[step.statusEffect.name];
                     updateBattleState();
                     break;
                 }
@@ -372,7 +372,11 @@ function BattleAvatar({player, showAP, rightSide, effectAnimation, showReviveAct
 function StatusEffects({statusEffects}) {
     const indicators = [];
     for(const effect in statusEffects) {
-        const name = statusEffects[effect].name;
+        const statusEffect = statusEffects[effect];
+        if(!statusEffect) {
+            continue;
+        }
+        const name = statusEffect.name;
         indicators.push(<StatusEffect key={effect} color={colors.getElementalColor(name)}>{name}</StatusEffect>)
     }
     return (
