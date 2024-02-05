@@ -3,7 +3,7 @@ import Head from "next/head";
 import sandboxStyle from "@/styles/sandbox.module.css"
 
 import useAnimation from "@/utilities/animation/useAnimation"
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import useTypeWriterAnimation from "@/utilities/animation/useTypeWriterAnimation";
 import useNumberAnimation from "@/utilities/animation/useNumberAnimation";
 import useIntAnimation from "@/utilities/animation/useIntAnimation";
@@ -20,7 +20,7 @@ export default function Sandbox() {
                 <link rel="icon" href="/favicon.ico"/>
             </Head>
             <HeaderBar title='Sandbox'/>
-            <TextTest/>
+            <TypeWriterTest/>
         </>
     );
 }
@@ -31,15 +31,15 @@ function TypeWriterTest() {
     const [animText, setAnimText] = useState(text1);
     const [doneText, setDoneText] = useState();
 
-    const onAnimationEnd = () => {
+    const onAnimationEnd = useCallback(() => {
         setDoneText('done')
-    };
+    }, []);
     const text = useTypeWriterAnimation(animText, 15, onAnimationEnd);
 
     return (
         <>
-            <button onClick={() => {setAnimText(text1)}}>Animation text 1</button>
-            <button onClick={() => {setAnimText(text2)}}>Animation text 2</button>
+            <button onClick={() => {setDoneText(''); setAnimText(text1)}}>Animation text 1</button>
+            <button onClick={() => {setDoneText(''); setAnimText(text2)}}>Animation text 2</button>
             <div className={sandboxStyle['container']}>
                 {text}
                 {doneText && <div>{doneText}</div>}

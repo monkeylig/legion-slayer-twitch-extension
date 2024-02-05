@@ -11,18 +11,14 @@ export default function useTypeWriterAnimation(finalString, charsPerSecond=5, on
         const numOfChars = Math.min(Math.floor(totalTime / 1000 * charsPerSecond), finalString.length);
         const currentString = finalString.substring(0, numOfChars);
 
-        if(animString !== currentString) {
-            setAnimString(currentString);
-        }
+        setAnimString(currentString);
 
         if(currentString === finalString) {
             onAnimationEnd?.();
         }
-    }, [animString, charsPerSecond, finalString, onAnimationEnd]);
+    }, [charsPerSecond, finalString, onAnimationEnd]);
 
-
-
-    useAnimation(animTick, animString !== finalString, [finalString]);
+    useAnimation(animTick, animString !== finalString);
 
     return animString;
 }

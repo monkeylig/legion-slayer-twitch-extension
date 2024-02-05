@@ -19,11 +19,16 @@ import Icon from "@/components/icon/icon";
 
 export default function Battle() {
     const router = useRouter();
-    const initialBattleState = useMemo(() => JSON.parse(router.query.battleState), []);
+    const initialBattleState = useMemo(() => {
+        try{
+            return JSON.parse(router.query.battleState);
+        } catch (error) {
+            return {};
+        }
+    }, [router.query.battleState]);
     const onTypeWriteEnd = useRef();
     const onEffectAnimationEnd = useRef();
     const onHealthAnimationEnd = useRef();
-    const strikeAnim = useRef(initialBattleState.strikeAnim);
     const [battleState, setBattleState] = useState(initialBattleState);
     const [controlMode, setControlMode] = useState('battle');
     const [optionsEnabled, setOptionsEnabled] = useState(true);
@@ -31,6 +36,10 @@ export default function Battle() {
     const [playerEffectAnim, setPlayerEffectAnim] = useState();
     const [monsterEffectAnim, setMonsterEffectAnim] = useState();
     const [results, setResults] = useState({});
+
+    if(!battleState.player || !battleState.monster) {
+        return;
+    }
 
     const updateBattleState = () => {
         setBattleState(Object.assign({}, battleState));
@@ -259,7 +268,7 @@ export default function Battle() {
             </Head>
             <div className={battleStyle['battle']}>
                 <div className={battleStyle['battle-zone']}>
-                    <Image fill src="tropic-battle.webp"></Image>
+                    <Image fill alt="A tropical jungle background" src="tropic-battle.webp"></Image>
                     <div className={battleStyle['header']}>
                         <BattleHeader player={battleState.player}/>
                         <BattleHeader player={battleState.monster}/>
@@ -318,7 +327,7 @@ function BattleAvatar({player, showAP, rightSide, effectAnimation, showReviveAct
     const onHealthAnimEnd = useCallback(() => {
         oldHealth.current = player.health;
         onHealthAnimationEnd?.();
-    }, [player.health]);
+    }, [player.health, onHealthAnimationEnd]);
 
     const currentHealth = useNumberAnimation(oldHealth.current, player.health, 500, onHealthAnimEnd);
 
@@ -548,7 +557,7 @@ function VictoryDialog({id, oldExp, oldExpToNextLevel, newExp, newExpToNextLevel
         levelUp.current = 0;
     }, [oldExp, oldExpToNextLevel, levelUps, newExp, oldLevel]);
 
-    const exp = useNumberAnimation(startExp, finalExp, 500, ()=>{
+    const animCallback = useCallback(()=>{
         if(finalExp === expToNextLevel) {
             levelUp.current += 1;
             setLevel(_level => ++_level);
@@ -563,7 +572,8 @@ function VictoryDialog({id, oldExp, oldExpToNextLevel, newExp, newExpToNextLevel
                 setExpToNextLevel(newExpToNextLevel);
             }
         }
-    });
+    }, [finalExp, expToNextLevel, levelUps, newExp, newExpToNextLevel]);
+    const exp = useNumberAnimation(startExp, finalExp, 500, animCallback);
 
     const dropsList = drops.map((drop, index) => {
         const weaponStyle = {
@@ -574,7 +584,7 @@ function VictoryDialog({id, oldExp, oldExpToNextLevel, newExp, newExpToNextLevel
             <div key={index} className={battleStyle['drop']}>
                 {drop.content.icon &&
                 <div className={battleStyle['drop-icon']}>
-                    <Image style={style} fill src={drop.content.icon}/>
+                    <Image style={style} fill alt="Icon of a gold coin." src={drop.content.icon}/>
                 </div>}
                 <span>{drop.content.name}</span>
             </div>

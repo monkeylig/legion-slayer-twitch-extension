@@ -24,7 +24,7 @@ export default function Shop() {
     const testShop = {
         title: 'Shop',
         description: 'A place to buy cool new things!',
-        coinIcon: 'coin.png',
+        coinIcon: 'coin.webp',
         products: []
     };
 

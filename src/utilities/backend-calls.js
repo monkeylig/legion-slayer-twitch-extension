@@ -14,7 +14,10 @@ function endpoint_url(name, ...queryStrings) {
 }
 
 async function backendCall(endpoint, method='GET', payload) {
-    const headers = {}
+    const headers = {
+        Authorization: `bearer ${frontendContext.get().token}`
+    };
+
     let body = '';
 
     const fetchOptions = {
@@ -161,6 +164,11 @@ async function productPurchase(playerId, productSku, transactionReceipt) {
     return player;
 }
 
+async function updateGame(gameId, mode) {
+    const game = await backendCall(endpoint_url('updateGame', `gameId=${gameId}`, `mode=${mode}`), 'POST');
+    return game;
+}
+
 const backend = {
     getResourceURL,
     getStartingAvatars,
@@ -182,7 +190,8 @@ const backend = {
     moveObjectFromInventoryToBag,
     claimObject,
     getInventoryPage,
-    productPurchase
+    productPurchase,
+    updateGame
 };
 
 export default backend;

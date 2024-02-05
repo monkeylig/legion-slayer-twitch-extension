@@ -12,7 +12,7 @@ export default function Currency({size=16, children}) {
     }
     return (
         <span className={currencyStyle['currency']}>
-            <Icon style={iconStyle} src='coin.png'/>
+            <Icon style={iconStyle} src='coin.webp'/>
             <span style={textStyle}>{children}</span>
         </span>
     );

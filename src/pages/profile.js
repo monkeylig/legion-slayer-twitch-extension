@@ -39,12 +39,12 @@ export default function Profile() {
             </Head>
             <div className={`${pageStyles['page-container-h-center']}`}>
                 <div className={profileStyles['weapon-background']}>
-                    <Image style={{objectFit: 'contain'}} src={player.weapon.icon} fill/>
+                    <Image alt='current player weapon' style={{objectFit: 'contain'}} src={player.weapon.icon} fill/>
                 </div>
                 <HeaderBarBack title='Profile' onBackClicked={() => { router.back(); }}/>
                 <div className={profileStyles['profile-view']}>
                     <div className={profileStyles['profile-avatar']}>
-                        <Image style={{objectFit: 'cover'}} src={player.avatar} fill/>
+                        <Image alt="player's avater" style={{objectFit: 'cover'}} src={player.avatar} fill/>
                     </div>
                     <div style={{fontSize: '1.5em'}}>{player.name}</div>
                     <div>Level {player.level}</div>
@@ -79,7 +79,7 @@ export default function Profile() {
                     {abilityRows}
                     <div>
                         <div className={profileStyles['section-title']}>Weapon</div>
-                        <button onClick={() => router.push(weaponViewURL)} className={profileStyles['weapon-btn']}><Image className={profileStyles['weapon-img']} src={player.weapon.icon} fill></Image></button>
+                        <button onClick={() => router.push(weaponViewURL)} className={profileStyles['weapon-btn']}><Image alt='current player weapon' className={profileStyles['weapon-img']} src={player.weapon.icon} fill></Image></button>
                     </div>
                 </div>
             </div>

@@ -10,19 +10,13 @@ export default function useNumberAnimation(startNum, endNum, duration, onAnimati
         const newNum = Math.max(min,
             Math.min(max, startNum + totalTime/duration * (endNum - startNum)));
 
-        if(newNum !== num) {
-            setNum(newNum);
-        }
+        setNum(newNum);
 
         if(newNum === endNum) {
             onAnimationEnd?.();
         }
-    }, [num, startNum, endNum, duration]);
+    }, [startNum, endNum, duration, onAnimationEnd]);
 
-    useEffect(()=>{
-        setNum(startNum);
-    }, [startNum]);
-
-    useAnimation(animTick, num !== endNum, [startNum, endNum, duration]);
+    useAnimation(animTick, num !== endNum);
     return num;
 }

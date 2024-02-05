@@ -1,11 +1,11 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
-export default function useAnimation(animFunction, isPlaying=true, deps=[]) {
+export default function useAnimation(animFunction, isPlaying=true) {
     const startTime = useRef(0);
     const lastTime = useRef(0);
     const animationId = useRef(0);
 
-    const animationTick = timestamp => {
+    const animationTick = useCallback(timestamp => {
         if(!isPlaying) {
             return;
         }
@@ -18,7 +18,7 @@ export default function useAnimation(animFunction, isPlaying=true, deps=[]) {
         lastTime.current = timestamp;
 
         animationId.current = window.requestAnimationFrame(animationTick);
-    };
+    }, [isPlaying, animFunction]); 
 
     useEffect(()=> {
         animationId.current = window.requestAnimationFrame(animationTick);
@@ -26,10 +26,10 @@ export default function useAnimation(animFunction, isPlaying=true, deps=[]) {
         return () => {
             window.cancelAnimationFrame(animationId.current);
         }; 
-    }, [isPlaying, animFunction]);
+    }, [animationTick]);
 
     useEffect(() => {
-        startTime.current = 0;
-        lastTime.current = 0;
-    }, [...deps]);
+            startTime.current = 0;
+            lastTime.current = 0;
+    }, [animFunction]);
 }

@@ -14,9 +14,10 @@ class FrontendContext {
         });
     }
 
-    update(accountId, channelId) {
+    update(accountId, channelId, token) {
         this.#context.accountId = accountId;
         this.#context.channelId = channelId;
+        this.#context.token = token;
         //window.sessionStorage.setItem('accountId', accountId);
         //window.sessionStorage.setItem('channelId', channelId);
         this.#onContextReady?.();
@@ -27,6 +28,26 @@ class FrontendContext {
     }
 
     get() {
+        if(!this.#context.player) {
+            this.#context.player = {
+                bag: {
+                    capacity: 10,
+                    objects: []
+                },
+                lastDrops: {
+                    objects: []
+                },
+                inventory: {
+                    leger: []
+                },
+                abilities: [],
+                weapon: {},
+                trackers: {
+                    weaponKills: {},
+                },
+                coins: 0
+            };
+        }
         return this.#context;
     }
 

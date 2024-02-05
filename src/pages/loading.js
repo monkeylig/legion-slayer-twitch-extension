@@ -2,7 +2,7 @@ import Head from 'next/head'
 import Image from 'next/image'
 import HeaderBar from '@/components/header-bar/header-bar'
 import pageStyles from '@/styles/pages.module.css'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import frontendContext from '@/utilities/frontend-context'
 import backend from '@/utilities/backend-calls'
 import { useRouter } from 'next/router'
@@ -13,7 +13,7 @@ export default function Loading() {
     const router = useRouter();
     const [viewerId, setViewerId] = useState(null);
 
-    const tryGoToGame = () => {
+    const tryGoToGame = useCallback(() => {
         const context = frontendContext.get();
         backend.getPlayer(context.accountId, 'twitch')
         .then((player) => {
@@ -25,7 +25,7 @@ export default function Loading() {
                 router.push('/signup');
             }
         });
-    };
+    }, [router]);
 
     useEffect(() => {
         frontendContext.wait()
@@ -38,7 +38,7 @@ export default function Loading() {
                 tryGoToGame();
             }
         });
-    }, [viewerId]);
+    }, [viewerId, tryGoToGame]);
 
     useEffect(() => {
         frontendContext.onContextUpdated(() => {

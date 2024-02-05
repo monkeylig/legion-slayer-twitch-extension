@@ -5,7 +5,7 @@ import { useRouter } from 'next/router';
 import objectViewStyle from '@/styles/object-view.module.css'
 import Button from '@/components/button/button';
 import TextBox from '@/components/text-box/text-box';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import StatSheet from '@/components/stat-sheet/stat-sheet';
 import colors from '@/utilities/colors';
 import backend from '@/utilities/backend-calls';
@@ -21,7 +21,20 @@ export default function ObjectView() {
     const router = useRouter();
     const [player, setPlayer] = useState(frontendContext.get().player);
     const controlMode = router.query.mode;
-    const object = JSON.parse(router.query.object);
+    const object = useMemo(() => {
+        try {
+            return JSON.parse(router.query.object);
+        } catch (error) {
+            return {
+                content: {
+                    name: ''
+                },
+                product: {
+                    name: ''
+                },
+            };
+        }
+    }, [router.query.object]);
     let container = 'content';
 
     if(controlMode === 'shop') {
@@ -57,7 +70,7 @@ export default function ObjectView() {
             </Head>
             <HeaderBarBack title={object[container].name} onBackClicked={router.back}/>
             <div className={objectViewStyle['icon-display']}>
-                <Image style={{objectFit: 'contain', ...tiltStyle}} fill src={object[container].icon}/>
+                <Image alt='object icon' style={{objectFit: 'contain', ...tiltStyle}} fill src={object[container].icon}/>
                 <div className={objectViewStyle['live-stats']}>
                     {router.query.mode === 'shop' && <Currency>{player.coins}</Currency>}
                     {(numInBag != 0 && object.type === 'item') && <span>x{numInBag} in Bag</span>}

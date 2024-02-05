@@ -15,6 +15,9 @@ import ClaimObjectButton from '@/components/object-viewers/claim-object-button';
 export default function Bag() {
     const router = useRouter();
     const [player, setPlayer] = useState(frontendContext.get().player);
+    if (!player) {
+        return;
+    }
 
     const moveObject = (objectId) => {
         backend.moveObjectFromBagToInventory(player.id, objectId)

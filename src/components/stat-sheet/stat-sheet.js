@@ -19,7 +19,9 @@ function Row({lastRow, className='', children}) {
     );
 }
 
-export default {
+const statSheet = {
     StatSheet,
     Row
 };
+
+export default statSheet;

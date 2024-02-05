@@ -19,22 +19,22 @@ export default function Inventory() {
     const [player, setPlayer] = useState(frontendContext.get().player);
     const [currentPage, setCurrentPage] = useState(0);
     const [pageData, setPageData] = useState({objects: []});
-
-    const bagFull = player.bag.objects.length >= player.bag.capacity;
-    const refreshPage = (_player=player) => {    
+    
+    const refreshPage = useCallback((_player=player) => {    
         backend.getInventoryPage(_player.id, _player.inventory.leger[currentPage].id)
         .then(page => {
             setPageData(page);
         })
         .catch(error => {});
-    };
+    }, [currentPage, player]);
+
     useEffect(() => {
         if(player.inventory.leger.length <= currentPage) {
             return;
         }
 
         refreshPage();
-    }, [currentPage]);
+    }, [currentPage, player.inventory.leger.length, refreshPage]);
 
     const moveObjectToInventory = objectId => {
         backend.moveObjectFromBagToInventory(player.id, objectId)
@@ -45,6 +45,7 @@ export default function Inventory() {
         .catch(error => {});
     };
 
+    const bagFull = player.bag.objects.length >= player.bag.capacity;
     const moveObjectToBag = objectId => {
         if(bagFull) {
             return;

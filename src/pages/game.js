@@ -55,7 +55,7 @@ function GameRender({game}) {
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <div style={{gap: '15px'}} className={`${pageStyles['page-container-h-center']}`}>
-                <HeaderBar title='Arena'/>
+                <HeaderBar title={game.name}/>
                 <p style={{textAlign: 'center'}}>Fight endlessly spawning monsters</p>
                 <div className={`${pageStyles['horizonal-container']}`}>
                     {monsterTiles}
@@ -65,7 +65,7 @@ function GameRender({game}) {
                     <Button className={`${gameStyles['nav-button']} material-symbols-outlined`} onClick={() => { router.push('/bag') }}>backpack</Button>
                     <button className={`${gameStyles['profile-bar']}`} onClick={() => { router.push('/profile'); }}>
                         <div className={`${gameStyles['profile-avatar']}`}>
-                            <Image src={player.avatar} fill/>
+                            <Image src={player.avatar} alt='Player avatar' fill/>
                         </div>
                         <div className={`${gameStyles['health-level-container']}`}>
                             <span>Lvl {player.level}</span>
@@ -106,7 +106,7 @@ function MonsterDialog({monster, id, gameId}) {
         <Dialog id={id}>
             <div className={gameStyles['monster-dialog']}>
                 <div className={gameStyles['monster-avatar']}>
-                    <Image fill src={monster.avatar}/>
+                    <Image alt='Avatar of a monster' fill src={monster.avatar}/>
                 </div>
                 <span style={{fontSize: '20px'}}>{monster.name}</span>
                 <span style={{fontSize: '12px'}}>Level {monster.level}</span>

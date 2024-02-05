@@ -7,7 +7,7 @@ export default function MonsterTile({monster={}, onClick}) {
         <button className={`${monsterTileStyles['monster-tile']}`} onClick={onClick}>
             <div className={monsterTileStyles['effect']}/>
             <div className={`${monsterTileStyles['monster-tile-avatar']}`}>
-                <Image src={monster.avatar} fill/>
+                <Image src={monster.avatar} alt='Monster tile show an image of a monster and its stats.' fill/>
                 <div className={monsterTileStyles['monster-info']}>
                     <div>{monster.name}</div>
                     <div style={{fontSize: '12px'}}>Lvl {monster.level}</div>

@@ -198,7 +198,7 @@ function AvatarMenu({menuControl, startingAvatars=[], currentValue, onValueUpdat
     };
     const avatarOptions = startingAvatars.map((avatar) => {
         return {
-                UI: <div className={signUpStyles['avatar-btn']}><Image fill src={avatar} className={signUpStyles['avatar-choice-btn']}/></div>,
+                UI: <div className={signUpStyles['avatar-btn']}><Image alt='player avater choice' fill src={avatar} className={signUpStyles['avatar-choice-btn']}/></div>,
                 value: avatar,
                 checked: currentValue === avatar
             };
