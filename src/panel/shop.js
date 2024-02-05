@@ -7,7 +7,6 @@ import Select from '@/components/select/select';
 import pageStyles from '@/styles/pages.module.css'
 import shopStyles from '@/styles/shop.module.css'
 import ShopItemButton from '@/components/object-viewers/shop-item-button';
-import { useRouter } from 'next/router';
 import useAsync from '@/utilities/useAsync';
 import backend from '@/utilities/backend-calls';
 import frontendContext from '@/utilities/frontend-context';
@@ -16,6 +15,7 @@ import Dialog from '@/components/dialog/dialog';
 import Icon from '@/components/icon/icon';
 import AsyncButton from '@/components/button/async-button';
 import Currency from '@/components/currency/currency';
+import { useNavigate } from 'react-router-dom';
 
 
 export default function Shop() {
@@ -34,7 +34,7 @@ export default function Shop() {
             price: 50,
             type: 'weapon',
             product: {
-                icon: 'gem_staff.png'
+                icon: 'gem_staff.webp'
             }
         });
     }
@@ -69,7 +69,7 @@ export default function Shop() {
 }
 
 function ShopRender({shop}) {
-    const router = useRouter();
+    const navigate = useNavigate();
     const [filterValue, setFilterValue] = useState('all');
     const [products, setProducts] = useState([]);
     const [player, setPlayer] = useState(frontendContext.get().player);
@@ -101,15 +101,12 @@ function ShopRender({shop}) {
     for(const productType in itemMap) {
         const shopItems = itemMap[productType].map((item, index) => {
             const urlObject = {
-                pathname: '/object-view',
-                query: {
-                    object: JSON.stringify(item),
-                    mode: 'shop'
-                }
-            };
+                object: JSON.stringify(item),
+                mode: 'shop'
+            }
             return <ShopItemButton label={item.product.name} tilt={item.type === 'weapon'}
             pricing={item.price} imageSrc={item.product.icon} key={`${productType}-${index}`}
-            onClick={() => {router.push(urlObject)}}/>;
+            onClick={() => { navigate('panel/object-view', { state: urlObject }); }}/>;
         });
 
         shopSections.push(
@@ -130,7 +127,7 @@ function ShopRender({shop}) {
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <div className={pageStyles['page-container-h-center']}>
-                <HeaderBarBack title='Shop' onBackClicked={() => { router.back(); }}/>
+                <HeaderBarBack title='Shop' onBackClicked={() => { navigate(-1); }}/>
                 <div className={shopStyles['shop-controls']}>
                     <Select className={shopStyles['shop-filter']} onChange={onFilterChanged}>
                         <option value='all'>All</option>

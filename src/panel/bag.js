@@ -6,14 +6,14 @@ import BagObjectButton from '@/components/object-viewers/bag-object-button';
 
 import pageStyles from '@/styles/pages.module.css'
 import bagStyles from '@/styles/bag.module.css'
-import { useRouter } from 'next/router';
 import frontendContext from '@/utilities/frontend-context';
 import backend from '@/utilities/backend-calls';
 import { useState } from 'react';
 import ClaimObjectButton from '@/components/object-viewers/claim-object-button';
+import { useNavigate } from 'react-router-dom';
 
 export default function Bag() {
-    const router = useRouter();
+    const navigate = useNavigate();
     const [player, setPlayer] = useState(frontendContext.get().player);
     if (!player) {
         return;
@@ -37,14 +37,11 @@ export default function Bag() {
 
     const bagButtons = player.bag.objects.map(bagObject => {
         const urlObject = {
-            pathname: '/object-view',
-            query: {
-                object: JSON.stringify(bagObject),
-                mode: 'bag'
-            }
+            object: bagObject,
+            mode: 'bag'
         };
         return <BagObjectButton tilt={bagObject.type === 'weapon'} label={bagObject.content.name} imageSrc={bagObject.content.icon} key={bagObject.id}
-        onMoveClicked={() => {moveObject(bagObject.id);}} onClick={()=>{router.push(urlObject)}}/>
+        onMoveClicked={() => {moveObject(bagObject.id);}} onClick={()=>{ navigate('/panel/object-view', { state: urlObject }); }}/>
     });
 
     for(let i=0; i < Math.max(0, player.bag.capacity - player.bag.objects.length); i++) {
@@ -53,15 +50,12 @@ export default function Bag() {
 
     const unclaimedButtons = player.lastDrops.objects.map(object => {
         const urlObject = {
-            pathname: '/object-view',
-            query: {
-                object: JSON.stringify(object),
-                mode: 'claim'
-            }
+            object: object,
+            mode: 'claim'
         };
         return (
             <ClaimObjectButton tilt={object.type === 'weapon'} label={object.content.name} imageSrc={object.content.icon} key={object.id}
-                onClaimClicked={() => {claimObject(object.id);}} onClick={()=>{router.push(urlObject)}}/>
+                onClaimClicked={() => {claimObject(object.id);}} onClick={()=>{ navigate('/panel/object-view', { state: urlObject }); }}/>
         );
     });
 
@@ -74,7 +68,7 @@ export default function Bag() {
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <div style={{gap: '15px'}} className={`${pageStyles['page-container-h-center']}`}>
-                <HeaderBarBack title='Bag' onBackClicked={() => { router.back(); }}/>
+                <HeaderBarBack title='Bag' onBackClicked={() => { navigate(-1); }}/>
                 <div className={`${bagStyles['bag-viewer']}`}>
                     {bagButtons}
                 </div>
@@ -88,7 +82,7 @@ export default function Bag() {
                 }
             </div>
             <div style={{height: '80px'}}/>
-            <Button className={`${bagStyles['inventory-btn']} material-symbols-outlined`} onClick={() => {router.push('/inventory')}}>inventory_2</Button>
+            <Button className={`${bagStyles['inventory-btn']} material-symbols-outlined`} onClick={() => { navigate('/panel/inventory'); }}>inventory_2</Button>
         </>
     );
 }

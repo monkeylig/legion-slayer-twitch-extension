@@ -8,14 +8,14 @@ import pageStyles from '@/styles/pages.module.css'
 import inventoryStyles from '@/styles/inventory.module.css'
 import BagObjectButton from '@/components/object-viewers/bag-object-button'
 import InventoryObjectButton from '@/components/object-viewers/inventory-object-button'
-import { useRouter } from 'next/router'
 import { useCallback, useEffect, useState } from 'react'
 import frontendContext from '@/utilities/frontend-context'
 import backend from '@/utilities/backend-calls'
 import useAsync from '@/utilities/useAsync'
+import { useNavigate } from 'react-router-dom'
 
 export default function Inventory() {
-    const router = useRouter();
+    const navigate = useNavigate();
     const [player, setPlayer] = useState(frontendContext.get().player);
     const [currentPage, setCurrentPage] = useState(0);
     const [pageData, setPageData] = useState({objects: []});
@@ -60,14 +60,11 @@ export default function Inventory() {
 
     const bagButtons = player.bag.objects.map(bagObject => {
         const urlObject = {
-            pathname: '/object-view',
-            query: {
-                object: JSON.stringify(bagObject),
-                mode: 'bag'
-            }
+            object: bagObject,
+            mode: 'bag'
         };
         return <BagObjectButton tilt={bagObject.type === 'weapon'} label={bagObject.content.name} imageSrc={bagObject.content.icon} key={bagObject.id}
-        className={inventoryStyles['bag-item']} onMoveClicked={() => {moveObjectToInventory(bagObject.id)}} onClick={()=>{router.push(urlObject)}}/>;
+        className={inventoryStyles['bag-item']} onMoveClicked={() => {moveObjectToInventory(bagObject.id)}} onClick={() => { navigate('/panel/object-view', { state: urlObject }); }}/>;
     });
 
     for(let i=0; i < Math.max(player.bag.capacity - player.bag.objects.length); i++) {
@@ -76,15 +73,12 @@ export default function Inventory() {
 
     const pageObjectButtons = pageData.objects.map(pageObject => {
         const urlObject = {
-            pathname: '/object-view',
-            query: {
-                object: JSON.stringify(pageObject),
-                mode: 'inventory',
-                pageId: pageData.id
-            }
+            object: pageObject,
+            mode: 'inventory',
+            pageId: pageData.id
         };
         return <InventoryObjectButton disableAdd={bagFull} tilt={pageObject.type === 'weapon'} label={pageObject.content.name} imageSrc={pageObject.content.icon} key={pageObject.id}
-        onAddClicked={() => moveObjectToBag(pageObject.id)} onClick={()=>{router.push(urlObject)}}/>;
+        onAddClicked={() => moveObjectToBag(pageObject.id)} onClick={()=>{ navigate('/panel/object-view', { state: urlObject }); }}/>;
     });
 
     const movePage = (value) => {
@@ -102,7 +96,7 @@ export default function Inventory() {
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <div className={`${pageStyles['page-container-h-center']}`}>
-                <HeaderBarBack title='Inventory' onBackClicked={router.back}/>
+                <HeaderBarBack title='Inventory' onBackClicked={ () => { navigate(-1); } }/>
                 {bagFull && <div className={inventoryStyles['bag-full-notification']}>Bag Full</div>}
                 <div className={inventoryStyles['page-nav']}>
                     <Button className={`${inventoryStyles['left-page-nav']} material-symbols-outlined`} onClick={() => {movePage(-1)}}>arrow_back</Button>

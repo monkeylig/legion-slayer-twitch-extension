@@ -1,7 +1,6 @@
 import HeaderBarBack from '@/components/header-bar/header-bar-back';
 import Head from 'next/head'
 import Image from 'next/image';
-import { useRouter } from 'next/router';
 import objectViewStyle from '@/styles/object-view.module.css'
 import Button from '@/components/button/button';
 import TextBox from '@/components/text-box/text-box';
@@ -14,27 +13,28 @@ import AsyncButton from '@/components/button/async-button';
 import AbilityView from '@/components/stat-sheet/ability-view';
 import Dialog from '@/components/dialog/dialog';
 import Currency from '@/components/currency/currency';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const MAX_ABILITIES = 5;
 
 export default function ObjectView() {
-    const router = useRouter();
+    const navigate = useNavigate();
+    const location = useLocation();
     const [player, setPlayer] = useState(frontendContext.get().player);
-    const controlMode = router.query.mode;
+    const controlMode = location.state.mode;
     const object = useMemo(() => {
-        try {
-            return JSON.parse(router.query.object);
-        } catch (error) {
-            return {
-                content: {
-                    name: ''
-                },
-                product: {
-                    name: ''
-                },
-            };
+        if(location.state.object) {
+            return location.state.object;
         }
-    }, [router.query.object]);
+        return {
+            content: {
+                name: ''
+            },
+            product: {
+                name: ''
+            },
+        };
+    }, [location.state]);
     let container = 'content';
 
     if(controlMode === 'shop') {
@@ -68,11 +68,11 @@ export default function ObjectView() {
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <link rel="icon" href="/favicon.ico" />
             </Head>
-            <HeaderBarBack title={object[container].name} onBackClicked={router.back}/>
+            <HeaderBarBack title={object[container].name} onBackClicked={()=>{navigate(-1)}}/>
             <div className={objectViewStyle['icon-display']}>
                 <Image alt='object icon' style={{objectFit: 'contain', ...tiltStyle}} fill src={object[container].icon}/>
                 <div className={objectViewStyle['live-stats']}>
-                    {router.query.mode === 'shop' && <Currency>{player.coins}</Currency>}
+                    {location === 'shop' && <Currency>{player.coins}</Currency>}
                     {(numInBag != 0 && object.type === 'item') && <span>x{numInBag} in Bag</span>}
                     {(object[container].count && controlMode === 'inventory') && <span>x{object[container].count}</span>}
                 </div>
@@ -81,7 +81,7 @@ export default function ObjectView() {
                 {controlMode === 'shop' && <ShopControls object={object} onBuy={(player) => setPlayer(player)}/>}
                 {controlMode === 'bag' && <BagControls inBag={inBag} object={object} onPlayerUpdate={updatePlayer}/>}
                 {controlMode === 'claim' && <ClaimControls object={object} onPlayerUpdate={updatePlayer}/>}
-                {controlMode === 'inventory' && <InventoryControls object={object} pageId={router.query.pageId} onMove={onMoveToBag}/>}
+                {controlMode === 'inventory' && <InventoryControls object={object} pageId={location.state.pageId} onMove={onMoveToBag}/>}
             </div>
             <div className={objectViewStyle['item-data']}>
                 <span className={objectViewStyle['object-description']}>{object[container].description}</span>
