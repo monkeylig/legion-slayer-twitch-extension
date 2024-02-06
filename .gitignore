@@ -12,10 +12,10 @@
 # next.js
 /.next/
 /out/
-out.zip
 
 # production
 /build
+twitch-ext.zip
 
 # misc
 .DS_Store

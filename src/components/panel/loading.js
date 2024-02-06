@@ -7,10 +7,11 @@ import frontendContext from '@/utilities/frontend-context'
 import backend from '@/utilities/backend-calls'
 import Button from '@/components/button/button'
 import colors from '@/utilities/colors'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 export default function Loading() {
     const navigate = useNavigate();
+    const location = useLocation();
     const [viewerId, setViewerId] = useState(null);
 
     const tryGoToGame = useCallback(() => {
@@ -25,7 +26,7 @@ export default function Loading() {
                 navigate('/panel/signup');
             }
         });
-    }, []);
+    }, [navigate]);
 
     useEffect(() => {
         frontendContext.wait()

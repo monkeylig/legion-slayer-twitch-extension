@@ -1,29 +1,29 @@
 import { useEffect, useState } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import LoadingPage from "@/panel/loading"
-import SignUp from "@/panel/signup";
-import Game from "@/panel/game";
-import Bag from "@/panel/bag";
-import Profile from "@/panel/profile";
-import Shop from "@/panel/shop";
-import ObjectView from "@/panel/object-view";
-import Inventory from "@/panel/inventory";
-import Battle from "@/panel/battle";
+import Loading from "@/components/panel/loading"
+import SignUp from "@/components/panel/signup";
+import Game from "@/components/panel/game";
+import Bag from "@/components/panel/bag";
+import Profile from "@/components/panel/profile";
+import Shop from "@/components/panel/shop";
+import ObjectView from "@/components/panel/object-view";
+import Inventory from "@/components/panel/inventory";
+import Battle from "@/components/panel/battle";
 
 export default function Panel() {
     const [router, setRouter] = useState();
     useEffect(() => {
         setRouter(createBrowserRouter([
             {
-                path: "/panel",
-                element: <LoadingPage/>,
+                path: "*",
+                element: <Loading/>,
             },
             {
-                path: "panel/signup",
+                path: "/panel/signup",
                 element: <SignUp/>
             },
             {
-                path: "panel/game",
+                path: "/panel/game",
                 element: <Game/>
             },
             {

@@ -54,7 +54,7 @@ export default function Shop() {
             price: 50,
             type: 'book',
             product: {
-                icon: 'tome_azure.webp'
+                icon: 'phoenix_down.webp'
             }
         });
     }
@@ -101,12 +101,12 @@ function ShopRender({shop}) {
     for(const productType in itemMap) {
         const shopItems = itemMap[productType].map((item, index) => {
             const urlObject = {
-                object: JSON.stringify(item),
+                object: item,
                 mode: 'shop'
             }
             return <ShopItemButton label={item.product.name} tilt={item.type === 'weapon'}
             pricing={item.price} imageSrc={item.product.icon} key={`${productType}-${index}`}
-            onClick={() => { navigate('panel/object-view', { state: urlObject }); }}/>;
+            onClick={() => { navigate('/panel/object-view', { state: urlObject }); }}/>;
         });
 
         shopSections.push(
