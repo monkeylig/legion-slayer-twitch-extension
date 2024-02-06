@@ -4,16 +4,19 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && npm run zip",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "zip": "cd out && bestzip ../twitch-ext.zip *"
   },
   "dependencies": {
+    "next": "14.0.1",
     "react": "^18",
     "react-dom": "^18",
-    "next": "14.0.1"
+    "react-router-dom": "^6.22.0"
   },
   "devDependencies": {
+    "bestzip": "^2.2.1",
     "eslint": "^8",
     "eslint-config-next": "14.0.1"
   }

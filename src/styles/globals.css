@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Zen+Dots&display=swap');
 :root {
   --border-radius: 12px;
   --font-mono: ui-monospace, Menlo, Monaco, 'Cascadia Mono', 'Segoe UI Mono',
@@ -56,6 +57,7 @@ html,
 body {
   width: 100vw;
   height: 100vh;
+  font-family: 'Zen Dots', sans-serif;
   /*overflow-x: hidden;*/
 }
 
@@ -63,6 +65,7 @@ body {
   color: var(--foreground-rgb);
   background: var(--background-rgb);
   font-size: 16px;
+
   overflow-y: auto;
   overflow-x: hidden;
 }

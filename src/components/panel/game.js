@@ -12,11 +12,11 @@ import backend from '@/utilities/backend-calls';
 import frontendContext from '@/utilities/frontend-context';
 import useAsync from '@/utilities/useAsync';
 import { useCallback } from 'react';
-import { useRouter } from 'next/router';
 import Dialog from '@/components/dialog/dialog';
 import LabeledMeterBar from '@/components/meter-bar/labeled-meter-bar';
 import colors from '@/utilities/colors';
 import AsyncButton from '@/components/button/async-button';
+import { useNavigate } from 'react-router-dom';
 
 export default function Game() {
     const joinGame = useCallback(() => backend.joinGame(frontendContext.get().player.id, frontendContext.get().channelId), []);
@@ -32,7 +32,7 @@ export default function Game() {
 }
 
 function GameRender({game}) {
-    const router = useRouter();
+    const navigate = useNavigate();
     const player = frontendContext.get().player;
     const monsterTiles = game.monsters.map(monster => {
         const onClick = () => {
@@ -62,8 +62,8 @@ function GameRender({game}) {
                 </div>
                 <div style={{height: '70px'}}></div>
                 <div className={gameStyles['game-nav']}>
-                    <Button className={`${gameStyles['nav-button']} material-symbols-outlined`} onClick={() => { router.push('/bag') }}>backpack</Button>
-                    <button className={`${gameStyles['profile-bar']}`} onClick={() => { router.push('/profile'); }}>
+                    <Button className={`${gameStyles['nav-button']} material-symbols-outlined`} onClick={() => { navigate('/panel/bag') }}>backpack</Button>
+                    <button className={`${gameStyles['profile-bar']}`} onClick={() => { navigate('/panel/profile'); }}>
                         <div className={`${gameStyles['profile-avatar']}`}>
                             <Image src={player.avatar} alt='Player avatar' fill/>
                         </div>
@@ -72,7 +72,7 @@ function GameRender({game}) {
                             <MeterBar progress={player.health/player.maxHealth} className={`${gameStyles['health-bar']}`}/>
                         </div>
                     </button>
-                    <Button className={`${gameStyles['nav-button']} material-symbols-outlined`} onClick={() => {router.push('/shop')}}>store</Button>
+                    <Button className={`${gameStyles['nav-button']} material-symbols-outlined`} onClick={() => {navigate('/panel/shop')}}>store</Button>
                 </div>
             </div>
         </>
@@ -80,7 +80,7 @@ function GameRender({game}) {
 }
 
 function MonsterDialog({monster, id, gameId}) {
-    const router = useRouter();
+    const navigate = useNavigate();
 
     if(!monster) {
         return;
@@ -95,12 +95,9 @@ function MonsterDialog({monster, id, gameId}) {
         const battleState = await backend.startBattle(playerId, gameId, monster.id, fallbackMonster);
 
         const urlObject = {
-            pathname: '/battle',
-            query: {
-                battleState: JSON.stringify(battleState),
-            }
+                battleState,
         };
-        router.push(urlObject);
+        navigate('/panel/battle', { state: urlObject });
     };
     return (
         <Dialog id={id}>

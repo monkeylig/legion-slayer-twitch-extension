@@ -12,7 +12,7 @@ import useAsync from '@/utilities/useAsync'
 import backend from '@/utilities/backend-calls'
 import Image from 'next/image'
 import frontendContext from '@/utilities/frontend-context'
-import { useRouter } from 'next/router'
+import { useNavigate } from 'react-router-dom'
 
 export default function SignUp() {
     const [data, isPending, error] = useAsync(backend.getGameInfo);
@@ -32,7 +32,7 @@ function SignUpRender({gameInfo}) {
     const vitalityChoice = useRef(null);
     const avatarChoice = useRef(null);
     const nameChoice = useRef('');
-    const router = useRouter();
+    const navigate = useNavigate();
 
     const menuControl = {
         next() {
@@ -51,7 +51,7 @@ function SignUpRender({gameInfo}) {
         backend.createNewPlayer(nameChoice.current, frontendContext.get().accountId, avatarChoice.current, vitalityChoice.current, weaponChoice.current)
         .then(newPlayer => {
             frontendContext.setPlayer(newPlayer);
-            router.push('/game');
+            navigate('/panel/game')
         })
         .catch(error => {
             console.log(error);

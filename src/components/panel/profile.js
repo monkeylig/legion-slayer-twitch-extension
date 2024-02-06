@@ -8,22 +8,19 @@ import Image from 'next/image'
 import MeterBar from '@/components/meter-bar/meter-bar'
 import colors from '@/utilities/colors'
 import StatSheet from '@/components/stat-sheet/stat-sheet'
-import { useRouter } from 'next/router'
 import frontendContext from '@/utilities/frontend-context'
 import AbilityView from '@/components/stat-sheet/ability-view'
+import { useNavigate } from 'react-router-dom'
 
 export default function Profile() {
-    const router = useRouter();
+    const navigate = useNavigate();
     const player = frontendContext.get().player;
-    const weaponViewURL = {
-        pathname: '/object-view',
-        query: {
-            object: JSON.stringify({
-                type: 'weapon',
-                content: player.weapon
-            }),
-            mode: 'bag'
-        }
+    const weaponViewObject = {
+        object: {
+            type: 'weapon',
+            content: player.weapon
+        },
+        mode: 'bag'
     };
 
     const abilityRows = player.abilities.map((ability, index) => {
@@ -41,7 +38,7 @@ export default function Profile() {
                 <div className={profileStyles['weapon-background']}>
                     <Image alt='current player weapon' style={{objectFit: 'contain'}} src={player.weapon.icon} fill/>
                 </div>
-                <HeaderBarBack title='Profile' onBackClicked={() => { router.back(); }}/>
+                <HeaderBarBack title='Profile' onBackClicked={() => { navigate(-1);}}/>
                 <div className={profileStyles['profile-view']}>
                     <div className={profileStyles['profile-avatar']}>
                         <Image alt="player's avater" style={{objectFit: 'cover'}} src={player.avatar} fill/>
@@ -79,7 +76,7 @@ export default function Profile() {
                     {abilityRows}
                     <div>
                         <div className={profileStyles['section-title']}>Weapon</div>
-                        <button onClick={() => router.push(weaponViewURL)} className={profileStyles['weapon-btn']}><Image alt='current player weapon' className={profileStyles['weapon-img']} src={player.weapon.icon} fill></Image></button>
+                        <button onClick={() => navigate('/panel/object-view', { state: weaponViewObject })} className={profileStyles['weapon-btn']}><Image alt='current player weapon' className={profileStyles['weapon-img']} src={player.weapon.icon} fill></Image></button>
                     </div>
                 </div>
             </div>

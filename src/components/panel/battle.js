@@ -1,7 +1,6 @@
 import Head from "next/head";
 import battleStyle from "@/styles/battle.module.css"
 import Image from "next/image";
-import { useRouter } from "next/router";
 import LabeledMeterBar from "@/components/meter-bar/labeled-meter-bar";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Button from "@/components/button/button";
@@ -16,16 +15,17 @@ import useNumberAnimation from "@/utilities/animation/useNumberAnimation";
 import { resolve } from "styled-jsx/css";
 import MeterBar from "@/components/meter-bar/meter-bar";
 import Icon from "@/components/icon/icon";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export default function Battle() {
-    const router = useRouter();
+    const navigate = useNavigate();
+    const location = useLocation();
     const initialBattleState = useMemo(() => {
-        try{
-            return JSON.parse(router.query.battleState);
-        } catch (error) {
-            return {};
+        if(location.state.battleState) {
+            return location.state.battleState;
         }
-    }, [router.query.battleState]);
+        return {};
+    }, [location.state.battleState]);
     const onTypeWriteEnd = useRef();
     const onEffectAnimationEnd = useRef();
     const onHealthAnimationEnd = useRef();
@@ -45,7 +45,7 @@ export default function Battle() {
         setBattleState(Object.assign({}, battleState));
     };
     const exitBattle = () => {
-        router.back();
+        navigate(-1);
     };
     const getDialog = (id) => {
         return document.querySelector(`#${id}`);
