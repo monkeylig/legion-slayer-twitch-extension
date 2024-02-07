@@ -1,7 +1,7 @@
 function getElementalColor(element) {
     switch (element) {
         case 'fire':
-        case 'inflamed':
+        case 'ablazed':
             return '#D64022';
         case 'lightning':
         case 'surged':

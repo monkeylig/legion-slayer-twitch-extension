@@ -56,7 +56,7 @@ function GameRender({game}) {
             </Head>
             <div style={{gap: '15px'}} className={`${pageStyles['page-container-h-center']}`}>
                 <HeaderBar title={game.name}/>
-                <p style={{textAlign: 'center'}}>Fight endlessly spawning monsters</p>
+                <p style={{textAlign: 'center'}}>{game.description}</p>
                 <div className={`${pageStyles['horizonal-container']}`}>
                     {monsterTiles}
                 </div>
