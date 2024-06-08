@@ -70,7 +70,7 @@ export default function ObjectView() {
             </Head>
             <HeaderBarBack title={object[container].name} onBackClicked={()=>{navigate(-1)}}/>
             <div className={objectViewStyle['icon-display']}>
-                <Image alt='object icon' style={{objectFit: 'contain', ...tiltStyle}} fill src={object[container].icon}/>
+                <Image sizes='318px' alt='object icon' style={{objectFit: 'contain', ...tiltStyle}} fill src={object[container].icon}/>
                 <div className={objectViewStyle['live-stats']}>
                     {location === 'shop' && <Currency>{player.coins}</Currency>}
                     {(numInBag != 0 && object.type === 'item') && <span>x{numInBag} in Bag</span>}
@@ -129,11 +129,9 @@ function BagControls({object, inBag, onPlayerUpdate}) {
 
     let moveText;
     if(inBag) {
-        console.log('move to inventory');
         moveText = 'move to inventory';
     }
     else if(!inBag) {
-        console.log('not in bag');
         moveText = 'not in bag';
     }
     

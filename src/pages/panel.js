@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import Loading from "@/components/panel/loading"
 import SignUp from "@/components/panel/signup";
 import Game from "@/components/panel/game";
@@ -13,7 +13,7 @@ import Battle from "@/components/panel/battle";
 export default function Panel() {
     const [router, setRouter] = useState();
     useEffect(() => {
-        setRouter(createBrowserRouter([
+        setRouter(createMemoryRouter([
             {
                 path: "*",
                 element: <Loading/>,

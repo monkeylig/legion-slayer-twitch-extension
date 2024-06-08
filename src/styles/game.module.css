@@ -51,6 +51,13 @@
     border-radius: 50%;
 }
 
+.profile-avatar img {
+    object-fit: cover;
+    object-position: 0 15px;
+    scale: 3;
+    background: rgb(148, 148, 148);
+}
+
 .health-level-container {
     display: flex;
     flex-direction: column;
@@ -75,6 +82,7 @@
     position: relative;
     width: 271px;
     height: 141px;
+    background: #493936;
 }
 
 .monster-avatar img {

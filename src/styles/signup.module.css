@@ -42,14 +42,16 @@
 
 .avatar-btn {
     position: relative;
-    width: 100px;
-    height: 100px;
+    width: 33vw;
+    max-width: 200px;
+    aspect-ratio: 1 / 2;
 }
 
 .avatar-choice-btn {
     background: transparent;
     border: 2px solid var(--blue);
     border-radius: 10px;
+    object-fit: cover;
 }
 
 .avatar-choices-input[type=radio]:checked + .avatar-choices-label .avatar-choice-btn{

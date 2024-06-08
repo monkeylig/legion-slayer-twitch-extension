@@ -16,15 +16,23 @@ import Dialog from '@/components/dialog/dialog';
 import LabeledMeterBar from '@/components/meter-bar/labeled-meter-bar';
 import colors from '@/utilities/colors';
 import AsyncButton from '@/components/button/async-button';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 export default function Game() {
-    const joinGame = useCallback(() => backend.joinGame(frontendContext.get().player.id, frontendContext.get().channelId), []);
+    const location = useLocation();
+    const joinGame = useCallback(async () => {
+        if(!backend.cache.game || (location.state && location.state.forceRefresh)) {
+            return await backend.joinGame(frontendContext.get().player.id, frontendContext.get().channelId)
+        }
+        return backend.cache.game
+    }, [location.state]);
     const [data, isPending, error] = useAsync(joinGame);
+
+    const pendingUI = backend.cache.game ? <GameRender game={backend.cache.game}/> : <h1>Loading Game...</h1>
 
     return (        
         <div>
-            {isPending && <h1>Loading Game...</h1>}
+            {isPending && pendingUI}
             {data && <GameRender game={data}/>}
             {error && <p>Sorry something went wrong. Try refreshing the page.</p>}
         </div>
@@ -34,14 +42,15 @@ export default function Game() {
 function GameRender({game}) {
     const navigate = useNavigate();
     const player = frontendContext.get().player;
-    const monsterTiles = game.monsters.map(monster => {
+    const monsterTiles = game.monsters.map((monster, index) => {
         const onClick = () => {
             const dialog = document.querySelector(`#m${monster.id}`);
             dialog.showModal();
         }
+
         return (
             <span key={monster.id}>
-                <MonsterTile monster={monster} onClick={onClick}/>
+                <MonsterTile monster={monster} onClick={onClick} priority={index < 6}/>
                 <MonsterDialog id={`m${monster.id}`} monster={monster} gameId={game.id}/>
             </span>
         );
@@ -65,7 +74,7 @@ function GameRender({game}) {
                     <Button className={`${gameStyles['nav-button']} material-symbols-outlined`} onClick={() => { navigate('/panel/bag') }}>backpack</Button>
                     <button className={`${gameStyles['profile-bar']}`} onClick={() => { navigate('/panel/profile'); }}>
                         <div className={`${gameStyles['profile-avatar']}`}>
-                            <Image src={player.avatar} alt='Player avatar' fill/>
+                            <Image sizes="56px" src={player.avatar} alt='Player avatar' fill/>
                         </div>
                         <div className={`${gameStyles['health-level-container']}`}>
                             <span>Lvl {player.level}</span>
@@ -103,7 +112,7 @@ function MonsterDialog({monster, id, gameId}) {
         <Dialog id={id}>
             <div className={gameStyles['monster-dialog']}>
                 <div className={gameStyles['monster-avatar']}>
-                    <Image alt='Avatar of a monster' fill src={monster.avatar}/>
+                    <Image sizes='271px' alt='Avatar of a monster' fill src={monster.avatar}/>
                 </div>
                 <span style={{fontSize: '20px'}}>{monster.name}</span>
                 <span style={{fontSize: '12px'}}>Level {monster.level}</span>

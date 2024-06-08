@@ -82,7 +82,7 @@ export default function Bag() {
                 }
             </div>
             <div style={{height: '80px'}}/>
-            <Button className={`${bagStyles['inventory-btn']} material-symbols-outlined`} onClick={() => { navigate('/panel/inventory'); }}>inventory_2</Button>
+            <Button className={`${bagStyles['inventory-btn']} material-symbols-outlined`} onClick={() => { navigate('/panel/inventory', {state: {page: 0}}); }}>inventory_2</Button>
         </>
     );
 }

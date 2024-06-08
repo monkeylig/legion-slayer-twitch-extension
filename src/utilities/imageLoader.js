@@ -1,4 +1,9 @@
+import backend from "./backend-calls";
+
 
 export default function imageLoader({ src, width, quality }) {
-    return `https://storage.googleapis.com/web_rpg_resources/${src}`
+    if(process.env.NODE_ENV === 'development') {
+        return `${backend.getResourceURL(src)}?${performance.now()}`
+    }
+    return `${backend.getResourceURL(src)}`
 }

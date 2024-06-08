@@ -1,5 +1,4 @@
 .monster-tile {
-    position: relative;
     width: 152px;
     height: 144px;
     color: inherit;
@@ -7,7 +6,7 @@
     font-size: inherit;
     border-radius: 25px;
     border: 2px solid #EEE;
-    background: #3A4750;
+    background: #493936;
     box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
     overflow: hidden;
 }
@@ -22,7 +21,7 @@
 }
 
 .monster-tile-avatar img {
-    object-fit: cover;
+    object-fit: contain;
 }
 
 .monster-tile:active .effect {
@@ -34,7 +33,6 @@
 }
 
 .monster-info {
-    position: relative;
     z-index: 2;
     width: 152px;
     height: 50px;

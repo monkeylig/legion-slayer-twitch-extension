@@ -40,3 +40,17 @@
     border-radius: 10px;
     background: var(--background-deep-rgb);
 }
+
+.tooltip {
+    position: absolute;
+    width: max-content;
+    text-align: center;
+    top: auto;
+    right: 0px;
+    bottom: 100%;
+    left: 50%;
+    max-width: 35vw;
+    min-width: 150px;
+    padding: 5px;
+    transform: translate(-50%, 0);
+}

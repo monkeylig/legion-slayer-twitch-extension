@@ -1,7 +1,12 @@
 import frontendContext from "./frontend-context";
 
 const backendURL = process.env.NODE_ENV === 'development' ? "http://localhost:4000" : 'https://web-rpg-9000.uw.r.appspot.com/';
-const resourceBackendURL = process.env.NODE_ENV === 'development' ? 'https://localhost/resources/' : 'https://storage.googleapis.com/web_rpg_resources/';
+const resourceBackendURL = 'https://storage.googleapis.com/web_rpg_resources/';
+
+const cache = {
+    game: null,
+    shop: null
+};
 
 function endpoint_url(name, ...queryStrings) {
     let queryString = queryStrings.length ? "?" : '';
@@ -69,8 +74,9 @@ function getPlayer(playerId, platform) {
     return backendCall(endpoint_url('get_player', `playerId=${playerId}`));
 }
 
-function joinGame(playerId, gameId) {
-    return backendCall(endpoint_url('join_game', `playerId=${playerId}`, `gameId=${gameId}`), 'POST');
+async function joinGame(playerId, gameId) {
+    cache.game = await backendCall(endpoint_url('join_game', `playerId=${playerId}`, `gameId=${gameId}`), 'POST');
+    return cache.game;
 }
 
 function getGame(gameId) {
@@ -126,8 +132,9 @@ function dropItem(playerId, itemName) {
     return backendCall(endpoint_url('drop_item', `playerId=${playerId}`, `itemName=${itemName}`), 'POST');
 }
 
-function getShop() {
-    return backendCall(endpoint_url('get_shop', `shopId=daily`));
+async function getShop() {
+    cache.shop = await backendCall(endpoint_url('get_shop', `shopId=daily`));
+    return cache.shop;
 }
 
 async function buy(playerId, shopId, productId, amount=1) {
@@ -191,7 +198,8 @@ const backend = {
     claimObject,
     getInventoryPage,
     productPurchase,
-    updateGame
+    updateGame,
+    cache
 };
 
 export default backend;

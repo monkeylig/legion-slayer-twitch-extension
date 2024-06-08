@@ -36,6 +36,7 @@ export default function Battle() {
     const [playerEffectAnim, setPlayerEffectAnim] = useState();
     const [monsterEffectAnim, setMonsterEffectAnim] = useState();
     const [results, setResults] = useState({});
+    const preloadedImages = useRef({});
 
     if(!battleState.player || !battleState.monster) {
         return;
@@ -45,7 +46,8 @@ export default function Battle() {
         setBattleState(Object.assign({}, battleState));
     };
     const exitBattle = () => {
-        navigate(-1);
+        navigate('/panel/game', { state: { forceRefresh: true } });
+
     };
     const getDialog = (id) => {
         return document.querySelector(`#${id}`);
@@ -232,6 +234,11 @@ export default function Battle() {
         setBattleUIEnabled(false);
         backend.battleAction(initialBattleState.id, actionRequest)
         .then(battleUpdate => {
+            for(const step of battleUpdate.steps){
+                if(step.animation) {
+                    preloadImages([step.animation.spriteSheet], preloadedImages.current);
+                }
+            }
             return runBattleIteration(battleUpdate)
         })
         .then((battleUpdate) => {
@@ -244,7 +251,6 @@ export default function Battle() {
             }
         })
         .catch(error => {
-            debugger
             setControlMode('error');
             waitCommand(1000)
             .then(() => {
@@ -274,7 +280,7 @@ export default function Battle() {
                         <BattleHeader player={battleState.monster}/>
                     </div>
                     <div className={battleStyle['avatars']}>
-                        <BattleAvatar player={battleState.player} effectAnimation={playerEffectAnim} showAP showReviveActive
+                        <BattleAvatar player={battleState.player} effectAnimation={playerEffectAnim} showAP showReviveActive zIndex={1}
                             onHealthAnimationEnd={onHealthAnimationEnd.current} onEffectAnimationEnd={onEffectAnimationEnd.current}/>
                         <BattleAvatar player={battleState.monster} effectAnimation={monsterEffectAnim} rightSide
                             onHealthAnimationEnd={onHealthAnimationEnd.current} onEffectAnimationEnd={onEffectAnimationEnd.current}/>
@@ -321,7 +327,7 @@ function BattleHeader({player}) {
     );
 }
 
-function BattleAvatar({player, showAP, rightSide, effectAnimation, showReviveActive, onHealthAnimationEnd, onEffectAnimationEnd}) {
+function BattleAvatar({player, showAP, rightSide, effectAnimation, showReviveActive, zIndex = 0, onHealthAnimationEnd, onEffectAnimationEnd}) {
     const oldHealth = useRef(player.health);
 
     const onHealthAnimEnd = useCallback(() => {
@@ -330,14 +336,6 @@ function BattleAvatar({player, showAP, rightSide, effectAnimation, showReviveAct
     }, [player.health, onHealthAnimationEnd]);
 
     const currentHealth = useNumberAnimation(oldHealth.current, player.health, 500, onHealthAnimEnd);
-
-    const rightSideSpriteStyle = {
-        transform: 'translate(calc(-60%), calc(-50%))'
-    };
-
-    const leftSideSpriteStyle = {
-        transform: 'translate(calc(-40%), calc(-50%)) scaleX(-1)'
-    };
 
     const protectionText = [];
     if(player.protection.magical > 0) {
@@ -358,19 +356,32 @@ function BattleAvatar({player, showAP, rightSide, effectAnimation, showReviveAct
             spriteContain.width = '200%';
         }
     }
+
+    const scale = rightSide ? "-1 1" : "1 1";
     return (
-        <div className={battleStyle['battle-avatar']}>
-            <Image alt="avatar" fill src={player.avatar} className={battleStyle['avatar-image']}/>
-            <LabeledMeterBar progress={currentHealth/player.maxHealth} bottomLabel={healthBottom} className={battleStyle['avatar-health-bar']}>{Math.floor(currentHealth)}</LabeledMeterBar>
+        <div className={battleStyle['battle-avatar']} style={{zIndex:zIndex}}>
+
+            <div className={battleStyle['battle-avatar-base-layer']}>
+                <LabeledMeterBar progress={currentHealth/player.maxHealth} bottomLabel={healthBottom} className={battleStyle['avatar-health-bar']}>{Math.floor(currentHealth)}</LabeledMeterBar>
+                <div className={battleStyle['avatar-image-position']}>
+                    <div className={battleStyle['avatar-image-float']}>
+                        <div style={{scale: scale}} className={battleStyle['avatar-image-container']}>
+                            <Image alt="avatar" fill src={player.avatar} className={battleStyle['avatar-image']}/>
+                        </div>
+                    </div>
+                    <div className={battleStyle['sprite-container']}>
+                        {(!rightSide && effectAnimation) && <Sprite columns={effectAnimation.columns} rows={effectAnimation.rows} spriteSheet={effectAnimation.spriteSheet}
+                            frameWidth={effectAnimation.frameWidth} frameHeight={effectAnimation.frameHeight} className={`${battleStyle['avatar-sprite']} ${battleStyle['avatar-sprite-left']}`} duration={effectAnimation.duration}
+                            onAnimationEnd={onEffectAnimationEnd}/>}
+
+                        {(rightSide && effectAnimation) && <Sprite style={{scale: -1}} columns={effectAnimation.columns} rows={effectAnimation.rows} spriteSheet={effectAnimation.spriteSheet}
+                            frameWidth={effectAnimation.frameWidth} frameHeight={effectAnimation.frameHeight} className={`${battleStyle['avatar-sprite']} ${battleStyle['avatar-sprite-right']}`} duration={effectAnimation.duration}
+                            onAnimationEnd={onEffectAnimationEnd}/>}
+                    </div>
+                </div>
+            </div>
+
             {showAP && <APTracker apNumber={player.ap}/>}
-
-            {(rightSide && effectAnimation) && <Sprite style={{...rightSideSpriteStyle, ...spriteContain}} columns={effectAnimation.columns} rows={effectAnimation.rows} spriteSheet={effectAnimation.spriteSheet}
-                frameWidth={effectAnimation.frameWidth} frameHeight={effectAnimation.frameHeight} className={battleStyle['avatar-sprite']} duration={effectAnimation.duration}
-                onAnimationEnd={onEffectAnimationEnd}/>}
-
-            {(!rightSide && effectAnimation) && <Sprite style={{...leftSideSpriteStyle, ...spriteContain}} columns={effectAnimation.columns} rows={effectAnimation.rows} spriteSheet={effectAnimation.spriteSheet}
-                frameWidth={effectAnimation.frameWidth} frameHeight={effectAnimation.frameHeight} className={battleStyle['avatar-sprite']} duration={effectAnimation.duration}
-                onAnimationEnd={onEffectAnimationEnd}/>}
             
             <StatusEffects statusEffects={player.statusEffects}/>
             {(showReviveActive && player.autoRevive > 0) && <Icon src='phoenix_down.webp' className={battleStyle['revive-ready']}/>}
@@ -638,3 +649,22 @@ function NoHPHelp() {
     );
 }
 
+function preloadImages(array, preloadImages) {
+    if (!preloadImages.list) {
+        preloadImages.list = [];
+    }
+    var list = preloadImages.list;
+    for (var i = 0; i < array.length; i++) {
+        var img = document.createElement('img');
+        img.onload = function() {
+            var index = list.indexOf(this);
+            if (index !== -1) {
+                // remove image from the array once it's loaded
+                // for memory consumption reasons
+                list.splice(index, 1);
+            }
+        }
+        list.push(img);
+        img.src = backend.getResourceURL(array[i]);
+    }
+}

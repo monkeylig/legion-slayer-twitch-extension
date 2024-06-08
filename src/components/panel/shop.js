@@ -59,9 +59,11 @@ export default function Shop() {
         });
     }
 
+    const pendingUI = backend.cache.shop ? <ShopRender shop={backend.cache.shop}/> : <h1>Loading daily shop</h1>;
+
     return (        
         <div>
-            {isPending && <ShopRender shop={testShop}/>}
+            {isPending && pendingUI}
             {data && <ShopRender shop={data}/>}
             {error && <p>Sorry something went wrong. Try refreshing the page.</p>}
         </div>

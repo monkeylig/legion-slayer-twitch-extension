@@ -9,7 +9,7 @@ export default function ObjectButton({imageSrc, label='Object Name', tilt=false,
     return (
     <div className={`${buttonStyles['object-button']} ${className}`} onDragStart={preventDragHandler} onClick={onClick}>
         <div className={`${buttonStyles['icon-container']}`} onDragStart={preventDragHandler}>
-            {imageSrc && <Image alt='image button' className={`${buttonStyles['button-icon']} ${rotateStyle}`} fill src={imageSrc} onDragStart={preventDragHandler}/>}
+            {imageSrc && <Image sizes="65px" alt='image button' className={`${buttonStyles['button-icon']} ${rotateStyle}`} fill src={imageSrc} onDragStart={preventDragHandler}/>}
         </div>
         <div>{label}</div>
         <div style={{position: 'relative'}}>{children}</div>

@@ -1,30 +1,43 @@
-function Text({styleData = [], children}) {
-    
+export default function RPGText({style, styleData = [], children}) {
+    const getStringValue = (value) => {
+        if (value instanceof RegExp) {
+            return value.source;
+        }
+        return value;
+    };
+
+    const styleMap = {};
+    for(const styleItem of styleData) {
+        const regex = new RegExp(styleItem.text, "g");
+        const matchesFound = children.match(regex);
+        if(matchesFound) {
+            for(const match of matchesFound) {
+                styleMap[match] = styleItem.style;
+            }
+        }
+    }
+
     const masterExp = "(" + styleData.reduce((accumulator, currentValue, index) => {
         if (index === 0) {
             return accumulator;
         }
         
-        return `${accumulator}|${currentValue.text}`;
-    }, styleData[0] ? styleData[0].text : '') + ")";
+        return `${accumulator}|${getStringValue(currentValue.text)}`;
+    }, styleData[0] ? getStringValue(styleData[0].text) : '') + ")";
 
     const searchExp = new RegExp(masterExp);
     const splitText = children.split(searchExp).filter(chunk => chunk !== '');
 
     const styledText = splitText.map((chunk, index) => {
-        for (const textStyle of styleData) {
-            let textMatch = new RegExp(textStyle.text);
-            if (textMatch.test(chunk)) {
-                const StyleFunc = textStyle.style;
-                return <StyleFunc key={index}>{chunk}</StyleFunc>
-            }
+        if (styleMap[chunk]) {
+            const StyleFunc = styleMap[chunk];
+            return <StyleFunc key={index}>{chunk}</StyleFunc>
         }
-
         return chunk;
     });
 
     return (
-        <span>
+        <span style={style}>
             {styledText}
         </span>
     );

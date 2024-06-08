@@ -12,20 +12,28 @@ import { useCallback, useEffect, useState } from 'react'
 import frontendContext from '@/utilities/frontend-context'
 import backend from '@/utilities/backend-calls'
 import useAsync from '@/utilities/useAsync'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from "react-router-dom";
 
 export default function Inventory() {
     const navigate = useNavigate();
     const [player, setPlayer] = useState(frontendContext.get().player);
-    const [currentPage, setCurrentPage] = useState(0);
+    const location = useLocation();
     const [pageData, setPageData] = useState({objects: []});
+    const [pageDataRequest, setPageDataRequest] = useState('pending');
+
+    const currentPage = location.state.page ? location.state.page : 0;
     
-    const refreshPage = useCallback((_player=player) => {    
+    console.log(currentPage);
+    const refreshPage = useCallback((_player=player) => {
+        setPageDataRequest('pending');
         backend.getInventoryPage(_player.id, _player.inventory.leger[currentPage].id)
         .then(page => {
+            setPageDataRequest('complete');
             setPageData(page);
         })
-        .catch(error => {});
+        .catch(error => {
+            setPageDataRequest('error');
+        });
     }, [currentPage, player]);
 
     useEffect(() => {
@@ -82,9 +90,18 @@ export default function Inventory() {
     });
 
     const movePage = (value) => {
-        setCurrentPage((lastPage) => {
-            return Math.min(player.inventory.leger.length - 1, Math.max(0, lastPage + value));
+        setPageData({objects: []});
+        const nextPage = Math.min(player.inventory.leger.length - 1, Math.max(0, currentPage + value));
+        navigate('/panel/inventory', {
+            state: {page: nextPage},
+            replace: true
         });
+        /*setCurrentPage((lastPage) => {
+            if(player.inventory.leger.length === 0) {
+                return lastPage;
+            }
+            return Math.min(player.inventory.leger.length - 1, Math.max(0, lastPage + value));
+        });*/
     }
 
     return (
@@ -109,7 +126,9 @@ export default function Inventory() {
                         {bagButtons}
                     </div>
                     <div className={inventoryStyles['inventory-container']}>
-                        {pageObjectButtons}
+                        {pageDataRequest === 'pending' && <h1>Loading Page...</h1>}
+                        {pageDataRequest === 'error' && <h1>Sorry, there was a problem loading the page</h1>}
+                        {pageDataRequest === 'complete' && pageObjectButtons}
                     </div>
                 </div>
                 <div style={{height: '80px'}}/>

@@ -41,7 +41,7 @@ export default function Profile() {
                 <HeaderBarBack title='Profile' onBackClicked={() => { navigate(-1);}}/>
                 <div className={profileStyles['profile-view']}>
                     <div className={profileStyles['profile-avatar']}>
-                        <Image alt="player's avater" style={{objectFit: 'cover'}} src={player.avatar} fill/>
+                        <Image alt="player's avater" src={player.avatar} fill/>
                     </div>
                     <div style={{fontSize: '1.5em'}}>{player.name}</div>
                     <div>Level {player.level}</div>
