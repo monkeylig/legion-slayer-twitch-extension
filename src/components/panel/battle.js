@@ -374,7 +374,7 @@ function BattleAvatar({player, showAP, rightSide, effectAnimation, showReviveAct
                             frameWidth={effectAnimation.frameWidth} frameHeight={effectAnimation.frameHeight} className={`${battleStyle['avatar-sprite']} ${battleStyle['avatar-sprite-left']}`} duration={effectAnimation.duration}
                             onAnimationEnd={onEffectAnimationEnd}/>}
 
-                        {(rightSide && effectAnimation) && <Sprite style={{scale: -1}} columns={effectAnimation.columns} rows={effectAnimation.rows} spriteSheet={effectAnimation.spriteSheet}
+                        {(rightSide && effectAnimation) && <Sprite columns={effectAnimation.columns} rows={effectAnimation.rows} spriteSheet={effectAnimation.spriteSheet}
                             frameWidth={effectAnimation.frameWidth} frameHeight={effectAnimation.frameHeight} className={`${battleStyle['avatar-sprite']} ${battleStyle['avatar-sprite-right']}`} duration={effectAnimation.duration}
                             onAnimationEnd={onEffectAnimationEnd}/>}
                     </div>
@@ -416,7 +416,7 @@ function StatusEffect({color, children}) {
 
 function Sprite({columns=1, rows=1, frameWidth=1, frameHeight=1, duration=1000, spriteSheet, style, className='', onAnimationEnd}) {
     const totalFrames = columns * rows;
-    const frame = useIntAnimation(0, totalFrames, duration, onAnimationEnd);
+    const frame = useIntAnimation(0, totalFrames, duration, onAnimationEnd, true);
     const spriteStyle = {
         aspectRatio: `${frameWidth} / ${frameHeight}`
     };

@@ -330,11 +330,11 @@
 
 .avatar-sprite-left {
     left: 5%;
+    transform: scaleX(-1)
 }
 
 .avatar-sprite-right {
     left: -5%;
-    transform: scaleX(-1)
 }
 
 .drop {
