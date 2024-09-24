@@ -21,7 +21,7 @@ export default function Config() {
     
     return (        
         <div>
-            {isPending && <h1>Loading Config...</h1>}
+            {isPending && <h1>Config...</h1>}
             {data && <ConfigRender game={data}/>}
             {error && <ConfigRender game={{mode: 'auto'}}/>}
         </div>

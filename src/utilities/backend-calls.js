@@ -8,6 +8,12 @@ const cache = {
     shop: null
 };
 
+/**
+ * 
+ * @param {string} name 
+ * @param  {...string} queryStrings 
+ * @returns 
+ */
 function endpoint_url(name, ...queryStrings) {
     let queryString = queryStrings.length ? "?" : '';
 
@@ -18,6 +24,13 @@ function endpoint_url(name, ...queryStrings) {
     return '/' + name + queryString;
 }
 
+/**
+ * 
+ * @param {string} endpoint 
+ * @param {string} method 
+ * @param {object} payload 
+ * @returns 
+ */
 async function backendCall(endpoint, method='GET', payload) {
     const headers = {
         Authorization: `bearer ${frontendContext.get().token}`
@@ -176,6 +189,25 @@ async function updateGame(gameId, mode) {
     return game;
 }
 
+/**
+ * 
+ * @param {string} playerId 
+ * @param {string} objectId 
+ * @param {{
+ * itemLocation?: {type: string, source: {pageId?: string}}
+ * }} [options] 
+ * @returns {Promise<{
+ * player: AgentData,
+ * steps: BattleStep,
+ * inventoryPage?: InventoryPageData
+ * }>}
+ */
+async function useItem(playerId, objectId, options) {
+    const result = await backendCall(endpoint_url('useItem', `playerId=${playerId}`, `objectId=${objectId}`), 'POST', options);
+    frontendContext.setPlayer(result.player);
+    return result;
+}
+
 const backend = {
     getResourceURL,
     getStartingAvatars,
@@ -199,7 +231,49 @@ const backend = {
     getInventoryPage,
     productPurchase,
     updateGame,
+    useItem,
     cache
 };
 
 export default backend;
+
+/**
+ * @typedef {Object} BattleStep
+ * @property {string} type
+ * @property {string} [description]
+ * 
+ * @typedef {BattleStep & {
+ * targetId: string,
+ * healAmount: number
+ * }} HealStep
+ * 
+ * @typedef {Object} AgentData
+ * @property {string} name
+ * @property {string} avatar
+ * @property {WeaponData} weapon
+ * @property {Object[]} abilities
+ * @property {number} autoRevive
+ * @property {number} maxHealth
+ * @property {number} health
+ * @property {number} strength
+ * @property {number} magic
+ * @property {number} defense
+ * @property {number} level
+ * @property {number} exp
+ * @property {number} expToNextLevel
+ * @property {Object.<string, EffectData>} effectsMap
+ * 
+ * @typedef {Object} CollectionContainer
+ * @property {string} type
+ * @property {string} id
+ * @property {Object} content
+ * 
+ * @typedef {Object} InventoryPageData
+ * @property {CollectionContainer[]} objects
+ * 
+ * @typedef {{
+ * count: number,
+ * icon: string,
+ * outOfBattle?: boolean
+ * }} ItemData
+ */

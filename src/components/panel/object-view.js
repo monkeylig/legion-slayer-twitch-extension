@@ -1,3 +1,8 @@
+/**
+ * @import {BattleStep, HealStep, AgentData, ItemData} from "@/utilities/backend-calls"
+ * @import {CollectionContainer} from '@/utilities/backend-calls'
+ */
+
 import HeaderBarBack from '@/components/header-bar/header-bar-back';
 import Head from 'next/head'
 import Image from 'next/image';
@@ -14,6 +19,7 @@ import AbilityView from '@/components/stat-sheet/ability-view';
 import Dialog from '@/components/dialog/dialog';
 import Currency from '@/components/currency/currency';
 import { useLocation, useNavigate } from 'react-router-dom';
+import LabeledMeterBar from '../meter-bar/labeled-meter-bar';
 
 const MAX_ABILITIES = 5;
 
@@ -22,19 +28,14 @@ export default function ObjectView() {
     const location = useLocation();
     const [player, setPlayer] = useState(frontendContext.get().player);
     const controlMode = location.state.mode;
-    const object = useMemo(() => {
-        if(location.state.object) {
-            return location.state.object;
-        }
-        return {
-            content: {
-                name: ''
-            },
-            product: {
-                name: ''
-            },
-        };
-    }, [location.state]);
+    const [object, setObject] = useState(location.state.object ? location.state.object : {
+        content: {
+            name: ''
+        },
+        product: {
+            name: ''
+        },
+    });
     let container = 'content';
 
     if(controlMode === 'shop') {
@@ -81,7 +82,8 @@ export default function ObjectView() {
                 {controlMode === 'shop' && <ShopControls object={object} onBuy={(player) => setPlayer(player)}/>}
                 {controlMode === 'bag' && <BagControls inBag={inBag} object={object} onPlayerUpdate={updatePlayer}/>}
                 {controlMode === 'claim' && <ClaimControls object={object} onPlayerUpdate={updatePlayer}/>}
-                {controlMode === 'inventory' && <InventoryControls object={object} pageId={location.state.pageId} onMove={onMoveToBag}/>}
+                {controlMode === 'inventory' && <InventoryControls object={object} pageId={location.state.pageId} onMove={onMoveToBag}
+                    onObjectUpdate={(newObject) => {setObject(newObject)}}/>}
             </div>
             <div className={objectViewStyle['item-data']}>
                 <span className={objectViewStyle['object-description']}>{object[container].description}</span>
@@ -114,7 +116,17 @@ function ShopControls({object, onBuy}) {
     );
 }
 
+/**
+ * 
+ * @param {{
+ * object: CollectionContainer,
+ * inBag: boolean,
+ * onPlayerUpdate?: (player: *)=> void
+ * }} param0 
+ * @returns 
+ */
 function BagControls({object, inBag, onPlayerUpdate}) {
+    const [battleSteps, setBattleSteps] = useState([]);
     const player = frontendContext.get().player;
     const onClick = async () => {
         const newPlayer = await backend.moveObjectFromBagToInventory(player.id, object.id);
@@ -127,14 +139,22 @@ function BagControls({object, inBag, onPlayerUpdate}) {
         }
     };
 
+    const useItem = async () => {
+        const result = await backend.useItem(player.id, object.id);
+        onPlayerUpdate?.(result.player);
+        setBattleSteps(result.steps);
+
+        const dialog = document.getElementById(`itemUsedDialog`);
+        dialog.showModal();
+    };
+
     let moveText;
     if(inBag) {
-        moveText = 'move to inventory';
+        moveText = 'move';
     }
     else if(!inBag) {
         moveText = 'not in bag';
     }
-    
     return (
         <>
             {object.type === 'weapon' &&
@@ -145,6 +165,12 @@ function BagControls({object, inBag, onPlayerUpdate}) {
             <AsyncButton disabled={!inBag} style={{background: colors.red}} className={objectViewStyle['action-btn']} onClick={onClick}>
                 {moveText}
             </AsyncButton>
+            {(object.type && object.type === 'item' && /**@type {ItemData}*/(object.content).outOfBattle) &&
+            <AsyncButton style={{background: colors.blue}} className={objectViewStyle['action-btn']} onClick={useItem}>
+                Use
+            </AsyncButton>}
+
+            <ItemUsedDialog battleSteps={battleSteps} id='itemUsedDialog'></ItemUsedDialog>
         </>
     );
 }
@@ -171,8 +197,20 @@ function ClaimControls({object, onPlayerUpdate}) {
     );
 }
 
-function InventoryControls({object, pageId, onMove}) {
+/**
+ * 
+ * @param {{
+ * object: CollectionContainer,
+ * pageId: string,
+ * onMove?: (AgentData) => void,
+ * onObjectUpdate?: (CollectionContainer) => void
+ * }} param0 
+ * @returns 
+ */
+function InventoryControls({object, pageId, onMove, onObjectUpdate}) {
     let [buttonEnabled, setButtonEnabled] = useState(true);
+    const [battleSteps, setBattleSteps] = useState([]);
+    const player = frontendContext.get().player;
 
     const bagFull = frontendContext.get().player.bag.objects.length >= frontendContext.get().player.bag.capacity;
     let buttonText = bagFull ? 'bag full' : 'add to bag';
@@ -185,9 +223,32 @@ function InventoryControls({object, pageId, onMove}) {
         setButtonEnabled(false);
         onMove?.(update.player);
     };
+    const useItem = async () => {
+        const options = {
+            itemLocation: {
+                type: 'inventory',
+                source: {pageId}
+            }
+        };
+        const result = (await backend.useItem(player.id, object.id, options));
+        if (result.inventoryPage) {
+            const newObject = result.inventoryPage.objects.find((value, index) => value.id === object.id);
+            if (newObject) {
+                onObjectUpdate?.(newObject);
+            }
+        }
+        setBattleSteps(result.steps);
+
+        const dialog = document.getElementById(`itemUsedFromInventoryDialog`);
+        dialog.showModal();
+    };
     return (
         <>
             <AsyncButton disabled={bagFull} className={objectViewStyle['action-btn']} onClick={onClick}>{buttonText}</AsyncButton>
+            {(object.type && object.type === 'item') && <AsyncButton style={{background: colors.blue}} className={objectViewStyle['action-btn']} onClick={useItem}>
+                Use
+            </AsyncButton>}
+            <ItemUsedDialog battleSteps={battleSteps} id='itemUsedFromInventoryDialog'></ItemUsedDialog>
         </>
     );
 }
@@ -319,4 +380,44 @@ function ShopBuyButton({productId, amount, children, onBuy}) {
         }
     }
     return <Button className={`${objectViewStyle['action-btn']} ${style}`} onClick={onClick}>{content}</Button>
+}
+
+/**
+ * 
+ * @param {{
+ * open: boolean,
+ * battleSteps: BattleStep[],
+ * id: string
+ * }} param0 
+ * @returns 
+ */
+function ItemUsedDialog({id, battleSteps, open=false}) {
+    const player = /**@type {AgentData}*/(frontendContext.get().player);
+    
+    const stepElements = battleSteps.map((battleStep, index) => {
+        if (battleStep.type === 'info') {
+            return (
+                <div key={index} className={`${objectViewStyle['item-used-dialog-step']} checkered-list`}>
+                    <p>{battleStep.description}</p>
+                </div>
+            );
+        }
+        else if (battleStep.type === 'heal') {
+            const healStep = /**@type {HealStep}*/(battleStep);
+            return (
+                <div key={index} className={`${objectViewStyle['item-used-dialog-step']} checkered-list`}>
+                    <p>+{healStep.healAmount} HP</p>
+                    <LabeledMeterBar progress={player.health/player.maxHealth}>{`${player.health}/${player.maxHealth}`}</LabeledMeterBar>
+                </div>
+            );
+        }
+    });
+
+    return (
+        <Dialog id={id} open={open}>
+            <div className={objectViewStyle['item-used-dialog']}>
+                {stepElements}
+            </div>
+        </Dialog>
+    );
 }

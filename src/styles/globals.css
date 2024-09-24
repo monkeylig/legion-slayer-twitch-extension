@@ -79,6 +79,8 @@ dialog {
   position: fixed;
   left: 50%;
   top: 50%;
+  width: 277px;
+  min-width: fit-content;
   transform: translate(-50%, -50%);
   border: 2px solid var(--foreground-rgb);
   background: var(--background-rgb);
@@ -90,6 +92,14 @@ dialog {
 dialog::backdrop {
   background: rgba(0, 0, 0, 0.4);
   z-index: 10;
+}
+
+.checkered-list:nth-child(even) {
+  background: var(--background-rgb);
+}
+
+.checkered-list:nth-child(odd) {
+  background: var(--background-deep-rgb);
 }
 
 @media (prefers-color-scheme: dark) {

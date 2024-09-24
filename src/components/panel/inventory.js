@@ -23,7 +23,6 @@ export default function Inventory() {
 
     const currentPage = location.state.page ? location.state.page : 0;
     
-    console.log(currentPage);
     const refreshPage = useCallback((_player=player) => {
         setPageDataRequest('pending');
         backend.getInventoryPage(_player.id, _player.inventory.leger[currentPage].id)
@@ -38,6 +37,7 @@ export default function Inventory() {
 
     useEffect(() => {
         if(player.inventory.leger.length <= currentPage) {
+            setPageDataRequest('complete');
             return;
         }
 

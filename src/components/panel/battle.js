@@ -110,7 +110,7 @@ export default function Battle() {
         const steps = battleUpdate.steps;
         for(const step of steps) {
             switch(step.type) {
-                case 'battle_end': {
+                case 'battleEnd': {
                     const status = battleUpdate.result.status;
                     setResults(battleUpdate.result);
                     if(status === 'victory') {
@@ -328,25 +328,6 @@ function BattleHeader({player}) {
 }
 
 function BattleAvatar({player, showAP, rightSide, effectAnimation, showReviveActive, zIndex = 0, onHealthAnimationEnd, onEffectAnimationEnd}) {
-    const oldHealth = useRef(player.health);
-
-    const onHealthAnimEnd = useCallback(() => {
-        oldHealth.current = player.health;
-        onHealthAnimationEnd?.();
-    }, [player.health, onHealthAnimationEnd]);
-
-    const currentHealth = useNumberAnimation(oldHealth.current, player.health, 500, onHealthAnimEnd);
-
-    const protectionText = [];
-    if(player.protection.magical > 0) {
-        protectionText.push(<span style={{color: colors.teal}} key='mProtec'>{player.protection.magical}</span>);
-    }
-
-    if(player.protection.physical > 0) {
-        protectionText.push(<span style={{color: colors.orange}} key='pProtec'>{player.protection.physical}</span>);
-    }
-    const healthBottom = <div style={{display: 'flex', gap: '10px'}}>{protectionText}</div>
-
     const spriteContain = {};
     if(effectAnimation) {
         if(effectAnimation.frameHeight > effectAnimation.frameWidth) {
@@ -362,7 +343,8 @@ function BattleAvatar({player, showAP, rightSide, effectAnimation, showReviveAct
         <div className={battleStyle['battle-avatar']} style={{zIndex:zIndex}}>
 
             <div className={battleStyle['battle-avatar-base-layer']}>
-                <LabeledMeterBar progress={currentHealth/player.maxHealth} bottomLabel={healthBottom} className={battleStyle['avatar-health-bar']}>{Math.floor(currentHealth)}</LabeledMeterBar>
+                <HealthBar health={player.health} maxHealth={player.maxHealth} physicalProtection={player.protection.physical}
+                    magicalProtection={player.protection.magical} onHealthAnimationEnd={onHealthAnimationEnd}></HealthBar>
                 <div className={battleStyle['avatar-image-position']}>
                     <div className={battleStyle['avatar-image-float']}>
                         <div style={{scale: scale}} className={battleStyle['avatar-image-container']}>
@@ -646,6 +628,42 @@ function NoHPHelp() {
             <span style={{fontSize: '1.25em'}}>Your HP will be restored</span>
             <span>{getGameTip()}</span>
         </>
+    );
+}
+
+/**
+ * 
+ * @param {{
+ * health: number,
+ * maxHealth: number,
+ * physicalProtection?: number,
+ * magicalProtection?: number,
+ * onHealthAnimationEnd?: () => void
+ * }} param0 
+ * @returns 
+ */
+function HealthBar({health, maxHealth, physicalProtection=0, magicalProtection=0, onHealthAnimationEnd}) {
+    const oldHealth = useRef(health);
+
+    const onHealthAnimEnd = useCallback(() => {
+        oldHealth.current = health;
+        onHealthAnimationEnd?.();
+    }, [health, onHealthAnimationEnd]);
+
+    const currentHealth = useNumberAnimation(oldHealth.current, health, 500, onHealthAnimEnd);
+
+    const protectionText = [];
+    if(magicalProtection > 0) {
+        protectionText.push(<span style={{color: colors.teal}} key='mProtec'>{magicalProtection}</span>);
+    }
+
+    if(physicalProtection > 0) {
+        protectionText.push(<span style={{color: colors.orange}} key='pProtec'>{physicalProtection}</span>);
+    }
+    const healthBottom = <div style={{display: 'flex', gap: '10px'}}>{protectionText}</div>
+
+    return (
+        <LabeledMeterBar progress={currentHealth/maxHealth} bottomLabel={healthBottom} className={battleStyle['avatar-health-bar']}>{Math.floor(currentHealth)}</LabeledMeterBar>
     );
 }
 

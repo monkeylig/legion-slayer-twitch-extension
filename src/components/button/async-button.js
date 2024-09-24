@@ -23,6 +23,7 @@ export default function AsyncButton({disabled, className='', style={}, onClick, 
             setContent('done');
         })
         .catch((error) => {
+            console.log(error);
             setTimeout(() => {
                 setInputDelayOn(false);
                 setContent(children);

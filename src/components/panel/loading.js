@@ -65,7 +65,7 @@ export default function Loading() {
                 <HeaderBar title='Loading'/>
                 <div className={pageStyles['page-container-v-center']}>
                     <Button style={{background: colors.blue, marginTop: '10px'}} onClick={continueClick}>Play Anonymously</Button>
-                    <p>Progress may not be saved</p>
+                    <p>Progress may not be saved, maybe</p>
                 </div>
             </div>
         </>
