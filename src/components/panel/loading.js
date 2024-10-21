@@ -32,7 +32,7 @@ export default function Loading() {
         frontendContext.wait()
         .then(() => {
             setViewerId()
-            if(!window.Twitch.ext.viewer.id) {
+            if(!frontendContext.viewerId) {
                 window.Twitch.ext.actions.requestIdShare();
             }
             else {
@@ -43,7 +43,7 @@ export default function Loading() {
 
     useEffect(() => {
         frontendContext.onContextUpdated(() => {
-            setViewerId(window.Twitch.ext.viewer.id);
+            setViewerId(frontendContext.viewerId);
         });
     }, []);
 

@@ -1,3 +1,7 @@
+/**
+ * @import {ProtectionStep} from "@/utilities/backend-calls"
+ */
+
 import Head from "next/head";
 import battleStyle from "@/styles/battle.module.css"
 import Image from "next/image";
@@ -16,6 +20,8 @@ import { resolve } from "styled-jsx/css";
 import MeterBar from "@/components/meter-bar/meter-bar";
 import Icon from "@/components/icon/icon";
 import { useLocation, useNavigate } from "react-router-dom";
+import RPGNumber from "@/utilities/rpg-number";
+import { PlayerActionType } from "@/utilities/game-types";
 
 export default function Battle() {
     const navigate = useNavigate();
@@ -153,8 +159,11 @@ export default function Battle() {
                     break;
                 }
                 case 'protection': {
+                    const protectionStep = /**@type {ProtectionStep}*/(step);
                     const target = getPlayerById(step.targetId);
-                    await healthAnimationCommand(0, target, step.protection.value, step.protection.type);
+                    const protectionType = protectionStep.protection.physical ? PlayerActionType.Physical : PlayerActionType.Magical;
+                    const protectionValue = protectionStep.protection[protectionType];
+                    await healthAnimationCommand(0, target, protectionValue, protectionType);
                     break;
                 }
                 case 'readyRevive': {
@@ -176,13 +185,13 @@ export default function Battle() {
                     break;
                 }
             }
-            if(step.description) {
-                await typeWriterMessageCommand(step.description);
-                await waitCommand(500);
-            }
             if(step.animation && (step.targetId || step.actorId)) {
                 const id = step.targetId ? step.targetId : step.actorId;
                 await playerEffectAnimationCommand(step.animation, id);
+            }
+            if(step.description) {
+                await typeWriterMessageCommand(step.description);
+                await waitCommand(500);
             }
         }
 
@@ -654,16 +663,16 @@ function HealthBar({health, maxHealth, physicalProtection=0, magicalProtection=0
 
     const protectionText = [];
     if(magicalProtection > 0) {
-        protectionText.push(<span style={{color: colors.teal}} key='mProtec'>{magicalProtection}</span>);
+        protectionText.push(<span style={{color: colors.teal}} key='mProtec'>{RPGNumber(magicalProtection)}</span>);
     }
 
     if(physicalProtection > 0) {
-        protectionText.push(<span style={{color: colors.orange}} key='pProtec'>{physicalProtection}</span>);
+        protectionText.push(<span style={{color: colors.orange}} key='pProtec'>{RPGNumber(physicalProtection)}</span>);
     }
     const healthBottom = <div style={{display: 'flex', gap: '10px'}}>{protectionText}</div>
 
     return (
-        <LabeledMeterBar progress={currentHealth/maxHealth} bottomLabel={healthBottom} className={battleStyle['avatar-health-bar']}>{Math.floor(currentHealth)}</LabeledMeterBar>
+        <LabeledMeterBar progress={currentHealth/maxHealth} bottomLabel={healthBottom} className={battleStyle['avatar-health-bar']}>{RPGNumber(currentHealth)}</LabeledMeterBar>
     );
 }
 

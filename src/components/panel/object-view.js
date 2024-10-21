@@ -20,6 +20,7 @@ import Dialog from '@/components/dialog/dialog';
 import Currency from '@/components/currency/currency';
 import { useLocation, useNavigate } from 'react-router-dom';
 import LabeledMeterBar from '../meter-bar/labeled-meter-bar';
+import RPGNumber from '@/utilities/rpg-number';
 
 const MAX_ABILITIES = 5;
 
@@ -406,8 +407,8 @@ function ItemUsedDialog({id, battleSteps, open=false}) {
             const healStep = /**@type {HealStep}*/(battleStep);
             return (
                 <div key={index} className={`${objectViewStyle['item-used-dialog-step']} checkered-list`}>
-                    <p>+{healStep.healAmount} HP</p>
-                    <LabeledMeterBar progress={player.health/player.maxHealth}>{`${player.health}/${player.maxHealth}`}</LabeledMeterBar>
+                    <p>+{RPGNumber(healStep.healAmount)} HP</p>
+                    <LabeledMeterBar progress={player.health/player.maxHealth}>{`${RPGNumber(player.health)}/${RPGNumber(player.maxHealth)}`}</LabeledMeterBar>
                 </div>
             );
         }

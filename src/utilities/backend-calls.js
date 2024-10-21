@@ -247,6 +247,15 @@ export default backend;
  * healAmount: number
  * }} HealStep
  * 
+ * @typedef {Object} ProtectionData
+ * @property {number} [physical]
+ * @property {number} [magical]
+ * 
+ * @typedef {BattleStep & {
+ * targetId: string,
+ * protection: ProtectionData
+ * }} ProtectionStep
+ * 
  * @typedef {Object} AgentData
  * @property {string} name
  * @property {string} avatar

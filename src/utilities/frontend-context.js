@@ -82,6 +82,22 @@ class FrontendContext {
             transactionFunc?.();
         });
     }
+
+    /**
+     * 
+     * @returns {boolean}
+     */
+    hasTwitchContext() {
+        return window.Twitch
+    }
+
+    get viewerId() {
+        if (!this.hasTwitchContext()) {
+            return '963595820';
+        }
+
+        return window.Twitch.ext.viewer.id;
+    }
 };
 
 const frontendContext = new FrontendContext();

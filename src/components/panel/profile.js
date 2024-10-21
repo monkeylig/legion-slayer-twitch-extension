@@ -11,6 +11,7 @@ import StatSheet from '@/components/stat-sheet/stat-sheet'
 import frontendContext from '@/utilities/frontend-context'
 import AbilityView from '@/components/stat-sheet/ability-view'
 import { useNavigate } from 'react-router-dom'
+import RPGNumber from '../../utilities/rpg-number'
 
 export default function Profile() {
     const navigate = useNavigate();
@@ -49,22 +50,22 @@ export default function Profile() {
                         <div className={profileStyles['labeled-bar']}>
                             <div className={profileStyles['meter-label']}>
                                 <div>HP</div>
-                                <div className={profileStyles['bar-value']}>{player.health}/{player.maxHealth}</div>
+                                <div className={profileStyles['bar-value']}>{RPGNumber(player.health)} / {RPGNumber(player.maxHealth)}</div>
                             </div>
                             <MeterBar progress={player.health/player.maxHealth} className={profileStyles['stat-meter']}/>
                         </div>
                         <div className={profileStyles['labeled-bar']}>
                             <div className={profileStyles['meter-label']}>
                                 <div>EXP</div>
-                                <div className={profileStyles['bar-value']}>{player.exp}/{player.expToNextLevel}</div>
+                                <div className={profileStyles['bar-value']}>{player.exp} / {player.expToNextLevel}</div>
                             </div>
                             <MeterBar progress={player.exp/player.expToNextLevel} barColor={colors.blue} className={profileStyles['stat-meter']}/>
                         </div>
                     </div>
                     <StatSheet.StatSheet>
-                        <StatSheet.Row>Strength - {player.strength}</StatSheet.Row>
-                        <StatSheet.Row>Magic - {player.magic}</StatSheet.Row>
-                        <StatSheet.Row lastRow>Defense - {player.defense}</StatSheet.Row>
+                        <StatSheet.Row>Strength - {RPGNumber(player.strength)}</StatSheet.Row>
+                        <StatSheet.Row>Magic - {RPGNumber(player.magic)}</StatSheet.Row>
+                        <StatSheet.Row lastRow>Defense - {RPGNumber(player.defense)}</StatSheet.Row>
                     </StatSheet.StatSheet>
                     <StatSheet.StatSheet>
                         <StatSheet.Row>Sword Victories - {player.trackers.weaponKills.sword}</StatSheet.Row>
