@@ -28,7 +28,7 @@ export default function useIntAnimation(startNum, endNum, duration, onAnimationE
             setAnimEnded(false);
             setNum(startNum);
         }
-    }, [animEnded, loop]);
+    }, [animEnded, loop, startNum]);
 
     useAnimation(animTick, num !== endNum);
     return num;

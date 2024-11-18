@@ -106,8 +106,7 @@ function ShopRender({shop}) {
                 object: item,
                 mode: 'shop'
             }
-            return <ShopItemButton label={item.product.name} tilt={item.type === 'weapon'}
-            pricing={item.price} imageSrc={item.product.icon} key={`${productType}-${index}`}
+            return <ShopItemButton shopItem={item} pricing={item.price} imageSrc={item.product.icon} key={`${productType}-${index}`}
             onClick={() => { navigate('/panel/object-view', { state: urlObject }); }}/>;
         });
 

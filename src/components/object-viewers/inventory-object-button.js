@@ -3,9 +3,9 @@ import ObjectButton from "./object-button";
 
 import buttonStyles from "./object-button.module.css"
 
-export default function InventoryObjectButton({label, disableAdd, imageSrc, tilt=false, className='', onAddClicked=() => {}, onClick}) {
+export default function InventoryObjectButton({pageObject, disableAdd, className='', onAddClicked=() => {}, onClick}) {
     return (
-        <ObjectButton tilt={tilt} label={label} imageSrc={imageSrc} className={`${className}`} onClick={onClick}>
+        <ObjectButton bagObject={pageObject} className={`${className}`} onClick={onClick}>
              <Button disabled={disableAdd} className={buttonStyles['inventory-add-btn']} onClick={e => {onAddClicked(); e.stopPropagation();}}>add</Button>
         </ObjectButton>
     );

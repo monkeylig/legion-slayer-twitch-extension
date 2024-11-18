@@ -41,7 +41,7 @@
 .dialog-header {
     display: flex;
     height: 32px;
-    width: 271px;
+    width: 100%;
     justify-content: center;
     align-items: center;
     background: var(--orange);

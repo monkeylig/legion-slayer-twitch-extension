@@ -238,29 +238,55 @@ const backend = {
 export default backend;
 
 /**
- * @typedef {Object} BattleStep
+ * 
+ * @typedef {Object} AgentActionData
+ * @property {string} [type] - The action's type
+ * @property {string} [style] - The action's style
+ * @property {AbilityData} [addAbility]
+ * 
+ * @typedef {AgentActionData & {
+ * elements?: string[], 
+ * animation?: object,
+ * }} AbilityActionData
+ * 
+ * @typedef {AbilityActionData & {
+ * name: string,
+ * apCost?: number,
+ * postActions?: AbilityActionData[]
+ * }} AbilityData
+ * 
+ * @typedef {Object} WeaponData
+ * @property {string} name
+ * @property {number} instanceNumber
  * @property {string} type
- * @property {string} [description]
+ * @property {string} style
+ * @property {number} baseDamage
+ * @property {number} speed
+ * @property {AbilityData} strikeAbility
+ * @property {Object} statGrowth
+ * @property {string} description
+ * @property {string} icon
  * 
- * @typedef {BattleStep & {
- * targetId: string,
- * healAmount: number
- * }} HealStep
+ * @typedef {Object} CollectionContainer
+ * @property {string} type
+ * @property {string} id
+ * @property {Object} content
  * 
- * @typedef {Object} ProtectionData
- * @property {number} [physical]
- * @property {number} [magical]
+ * @typedef {CollectionContainer[]} Collection
  * 
- * @typedef {BattleStep & {
- * targetId: string,
- * protection: ProtectionData
- * }} ProtectionStep
+ * @typedef {Object} BagHolderData
+ * @property {Object} bag
+ * @property {{
+ * objects: Collection[]
+ * }} lastDrops
+ * @property {number} coins
  * 
  * @typedef {Object} AgentData
  * @property {string} name
+ * @property {string} id
  * @property {string} avatar
  * @property {WeaponData} weapon
- * @property {Object[]} abilities
+ * @property {AbilityData[]} [abilities]
  * @property {number} autoRevive
  * @property {number} maxHealth
  * @property {number} health
@@ -269,8 +295,19 @@ export default backend;
  * @property {number} defense
  * @property {number} level
  * @property {number} exp
+ * @property {number} ap
  * @property {number} expToNextLevel
  * @property {Object.<string, EffectData>} effectsMap
+ * 
+ * @typedef {AgentData & BagHolderData} PlayerData
+ * 
+ * @typedef {AgentData & {
+ * talent: { maxHealth: number, strength: number, magic: number, defense: number}
+ * }} MonsterData
+ * 
+ * @typedef {AgentData & {
+ * maxAp: number
+ * }} BattleAgentData
  * 
  * @typedef {Object} CollectionContainer
  * @property {string} type
@@ -285,4 +322,17 @@ export default backend;
  * icon: string,
  * outOfBattle?: boolean
  * }} ItemData
+ * 
+ * @typedef {Object} EffectData
+ * @property {string} targetId
+ * @property {string} className
+ * @property {Object} inputData
+ * @property {string} [persistentId]
+ * 
+ * @typedef {Object} ImbueEffectData
+ * @property {string} element
+ * @property {number} roundsLeft 
+ * 
+ * @typedef {Object} BattleData
+ * @property {EffectData[]} effects
  */

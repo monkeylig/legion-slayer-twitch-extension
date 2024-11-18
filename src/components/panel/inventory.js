@@ -71,8 +71,8 @@ export default function Inventory() {
             object: bagObject,
             mode: 'bag'
         };
-        return <BagObjectButton tilt={bagObject.type === 'weapon'} label={bagObject.content.name} imageSrc={bagObject.content.icon} key={bagObject.id}
-        className={inventoryStyles['bag-item']} onMoveClicked={() => {moveObjectToInventory(bagObject.id)}} onClick={() => { navigate('/panel/object-view', { state: urlObject }); }}/>;
+        return <BagObjectButton bagObject={bagObject} key={bagObject.id} className={inventoryStyles['bag-item']}
+        onMoveClicked={() => {moveObjectToInventory(bagObject.id)}} onClick={() => { navigate('/panel/object-view', { state: urlObject }); }}/>;
     });
 
     for(let i=0; i < Math.max(player.bag.capacity - player.bag.objects.length); i++) {
@@ -85,23 +85,20 @@ export default function Inventory() {
             mode: 'inventory',
             pageId: pageData.id
         };
-        return <InventoryObjectButton disableAdd={bagFull} tilt={pageObject.type === 'weapon'} label={pageObject.content.name} imageSrc={pageObject.content.icon} key={pageObject.id}
-        onAddClicked={() => moveObjectToBag(pageObject.id)} onClick={()=>{ navigate('/panel/object-view', { state: urlObject }); }}/>;
+        return <InventoryObjectButton pageObject={pageObject} key={pageObject.id} onAddClicked={() => moveObjectToBag(pageObject.id)}
+        onClick={()=>{ navigate('/panel/object-view', { state: urlObject }); }}/>;
     });
 
     const movePage = (value) => {
+        if (player.inventory.leger.length === 0) {
+            return;
+        }
         setPageData({objects: []});
         const nextPage = Math.min(player.inventory.leger.length - 1, Math.max(0, currentPage + value));
         navigate('/panel/inventory', {
             state: {page: nextPage},
             replace: true
         });
-        /*setCurrentPage((lastPage) => {
-            if(player.inventory.leger.length === 0) {
-                return lastPage;
-            }
-            return Math.min(player.inventory.leger.length - 1, Math.max(0, lastPage + value));
-        });*/
     }
 
     return (

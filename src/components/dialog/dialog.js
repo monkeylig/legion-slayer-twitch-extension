@@ -1,4 +1,7 @@
-export default function Dialog({open, id='', className='', children}) {
+import Button from "../button/button";
+import dialogStyles from "./dialog.module.css"
+
+export default function Dialog({open, enableExit, id=`${Math.random()}`, className='', children}) {
 
     const onClick = (e) => {
         if (e.currentTarget !== e.target){
@@ -16,5 +19,18 @@ export default function Dialog({open, id='', className='', children}) {
             dialog.close();
           }
     };
-    return <dialog open={open} onClick={onClick} id={id} className={className}>{children}</dialog>
+
+    const onExitClicked = () => {
+        const dialog = /**@type {HTMLDialogElement}*/(document.getElementById(id));
+        if (!dialog) {
+            return;
+        }
+
+        dialog.close();
+    };
+    return (
+        <dialog open={open} onClick={onClick} id={id} className={className}>
+            {children}
+            {enableExit && <Button className={`${dialogStyles['exit-btn']} material-symbols-outlined`} onClick={onExitClicked}>close</Button>}
+        </dialog>);
 }

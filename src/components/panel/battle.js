@@ -1,5 +1,7 @@
 /**
- * @import {ProtectionStep} from "@/utilities/backend-calls"
+ * @import {AddEffectStep, ApChangeStep, ProtectionStep, RemoveEffectStep} from "@/utilities/battle-step-types"
+ * @import {BattleData, EffectData, AbilityData} from "@/utilities/backend-calls"
+ * @import {BattleAgentData} from "@/utilities/backend-calls"
  */
 
 import Head from "next/head";
@@ -35,7 +37,7 @@ export default function Battle() {
     const onTypeWriteEnd = useRef();
     const onEffectAnimationEnd = useRef();
     const onHealthAnimationEnd = useRef();
-    const [battleState, setBattleState] = useState(initialBattleState);
+    const [battleState, setBattleState] = /**@type {[BattleData, (obj: BattleData) => void]}*/(useState(initialBattleState));
     const [controlMode, setControlMode] = useState('battle');
     const [optionsEnabled, setOptionsEnabled] = useState(true);
     const [typeWriterMessage, setTypeWriterMessage] = useState('');
@@ -58,6 +60,8 @@ export default function Battle() {
     const getDialog = (id) => {
         return document.querySelector(`#${id}`);
     };
+
+    /**@type {(id: string) => BattleAgentData|undefined} */
     const getPlayerById = (id) => {
         if(battleState.player.id === id) { return battleState.player;}
         else if(battleState.monster.id === id) { return battleState.monster;}
@@ -146,12 +150,6 @@ export default function Battle() {
                     await healthAnimationCommand(step.healAmount, target);
                     break;
                 }
-                case 'apCost': {
-                    const target = getPlayerById(step.targetId);
-                    target.ap -= step.apCost;
-                    updateBattleState();
-                    break;
-                }
                 case 'apGain': {
                     const target = getPlayerById(step.targetId);
                     target.ap += step.apGain;
@@ -182,6 +180,39 @@ export default function Battle() {
                     const target = getPlayerById(step.targetId);
                     delete target.statusEffects[step.statusEffect.name];
                     updateBattleState();
+                    break;
+                }
+                case 'apChange': {
+                    const apChangeStep = /**@type {ApChangeStep}*/(step);
+                    const target = getPlayerById(apChangeStep.targetId);
+                    if (!target) {break;}
+                    target.ap += apChangeStep.netChange;
+                    updateBattleState();
+                    break;
+                }
+                case 'addEffect': {
+                    const addEffectStep = /**@type {AddEffectStep}*/(step);
+                    if (!addEffectStep.successful) {break;}
+                    const target = getPlayerById(addEffectStep.effect.targetId);
+                    if (!target) {break;}
+                    battleState.effects.push(addEffectStep.effect);
+                    updateBattleState();
+                    break;
+                }
+                case 'removeEffect': {
+                    const removeEffectStep = /**@type {RemoveEffectStep}*/(step);
+                    if (!removeEffectStep.successful) {break;}
+                    const removeEffect = removeEffectStep.effect;
+                    const target = getPlayerById(removeEffectStep.effect.targetId);
+                    if (!target) {break;}
+                    const effectIndex = battleState.effects.findIndex((effect) => {
+                        return effect.className === removeEffect.className &&
+                        effect.targetId === removeEffect.targetId
+                    });
+                    if (effectIndex != -1) {
+                        battleState.effects.splice(effectIndex, 1);
+                        updateBattleState();
+                    }
                     break;
                 }
             }
@@ -273,6 +304,8 @@ export default function Battle() {
     });
 
     const itemStyle = controlMode === 'items' ? {background: 'transparent', border: `2px solid ${colors.orange}`} : {};
+    const playerZ = playerEffectAnim ? 1 : 0;
+    const monsterZ = monsterEffectAnim ? 1 : 0;
     return (
         <>
             <Head>
@@ -289,14 +322,14 @@ export default function Battle() {
                         <BattleHeader player={battleState.monster}/>
                     </div>
                     <div className={battleStyle['avatars']}>
-                        <BattleAvatar player={battleState.player} effectAnimation={playerEffectAnim} showAP showReviveActive zIndex={1}
+                        <BattleAvatar player={battleState.player} battleData={battleState} effectAnimation={playerEffectAnim} showAP showReviveActive zIndex={playerZ}
                             onHealthAnimationEnd={onHealthAnimationEnd.current} onEffectAnimationEnd={onEffectAnimationEnd.current}/>
-                        <BattleAvatar player={battleState.monster} effectAnimation={monsterEffectAnim} rightSide
+                        <BattleAvatar player={battleState.monster} battleData={battleState} effectAnimation={monsterEffectAnim} rightSide zIndex={monsterZ}
                             onHealthAnimationEnd={onHealthAnimationEnd.current} onEffectAnimationEnd={onEffectAnimationEnd.current}/>
                     </div>
                 </div>
                 <div className={battleStyle['controls']}>
-                    {controlMode === 'battle' && <BattleControls player={battleState.player} onAbilityClicked={onAbilityClicked} onStrikeClicked={() => {commitBattleAction({actionType: 'strike'})}}/>}
+                    {controlMode === 'battle' && <BattleControls player={battleState.player} battleData={battleState} onAbilityClicked={onAbilityClicked} onStrikeClicked={() => {commitBattleAction({actionType: 'strike'})}}/>}
                     {controlMode === 'items' && <ItemControls items={battleItems} onItemClicked={onItemClicked}/>}
                     {controlMode === 'waiting' && <MessageControls>Waiting...</MessageControls>}
                     {controlMode === 'error' && <MessageControls>Sorry, Something went wrong</MessageControls>}
@@ -336,18 +369,24 @@ function BattleHeader({player}) {
     );
 }
 
-function BattleAvatar({player, showAP, rightSide, effectAnimation, showReviveActive, zIndex = 0, onHealthAnimationEnd, onEffectAnimationEnd}) {
-    const spriteContain = {};
-    if(effectAnimation) {
-        if(effectAnimation.frameHeight > effectAnimation.frameWidth) {
-            spriteContain.height = '100%';
-        }
-        else {
-            spriteContain.width = '200%';
-        }
-    }
-
+/**
+ * 
+ * @param {{
+ * player: BattleAgentData
+ * }} attributes 
+ * @returns 
+ */
+function BattleAvatar({player, battleData, showAP, rightSide, effectAnimation, showReviveActive, zIndex = 0, onHealthAnimationEnd, onEffectAnimationEnd}) {
+    const reviveReady = findEffect(player, battleData, 'ReviveEffect') !== undefined;
     const scale = rightSide ? "-1 1" : "1 1";
+
+    let spriteClasses = `${battleStyle['avatar-sprite']}`;
+    if (rightSide) {
+        spriteClasses += ` ${battleStyle['avatar-sprite-right']}`;
+    }
+    else {
+        spriteClasses += ` ${battleStyle['avatar-sprite-left']}`;
+    }
     return (
         <div className={battleStyle['battle-avatar']} style={{zIndex:zIndex}}>
 
@@ -361,35 +400,43 @@ function BattleAvatar({player, showAP, rightSide, effectAnimation, showReviveAct
                         </div>
                     </div>
                     <div className={battleStyle['sprite-container']}>
-                        {(!rightSide && effectAnimation) && <Sprite columns={effectAnimation.columns} rows={effectAnimation.rows} spriteSheet={effectAnimation.spriteSheet}
-                            frameWidth={effectAnimation.frameWidth} frameHeight={effectAnimation.frameHeight} className={`${battleStyle['avatar-sprite']} ${battleStyle['avatar-sprite-left']}`} duration={effectAnimation.duration}
-                            onAnimationEnd={onEffectAnimationEnd}/>}
-
-                        {(rightSide && effectAnimation) && <Sprite columns={effectAnimation.columns} rows={effectAnimation.rows} spriteSheet={effectAnimation.spriteSheet}
-                            frameWidth={effectAnimation.frameWidth} frameHeight={effectAnimation.frameHeight} className={`${battleStyle['avatar-sprite']} ${battleStyle['avatar-sprite-right']}`} duration={effectAnimation.duration}
+                        {(effectAnimation) && <Sprite style={{zIndex:zIndex+10}} columns={effectAnimation.columns} rows={effectAnimation.rows} spriteSheet={effectAnimation.spriteSheet}
+                            frameWidth={effectAnimation.frameWidth} frameHeight={effectAnimation.frameHeight} className={spriteClasses} duration={effectAnimation.duration}
                             onAnimationEnd={onEffectAnimationEnd}/>}
                     </div>
                 </div>
             </div>
 
-            {showAP && <APTracker apNumber={player.ap}/>}
+            {showAP && <APTracker apNumber={player.ap} maxAp={player.maxAp}/>}
             
-            <StatusEffects statusEffects={player.statusEffects}/>
-            {(showReviveActive && player.autoRevive > 0) && <Icon src='phoenix_down.webp' className={battleStyle['revive-ready']}/>}
+            <StatusEffects agent={player} battle={battleData}/>
+            {(showReviveActive && reviveReady) && <Icon src='phoenix_down.webp' className={battleStyle['revive-ready']}/>}
         </div>
     );
 }
 
-function StatusEffects({statusEffects}) {
+/**
+ * 
+ * @param {{
+ * agent: BattleAgent,
+ * battle: BattleData
+ * }} attributes 
+ * @returns 
+ */
+function StatusEffects({agent, battle}) {
     const indicators = [];
-    for(const effect in statusEffects) {
-        const statusEffect = statusEffects[effect];
-        if(!statusEffect) {
-            continue;
+
+    for(const statusEffect of [
+        ['AblazedEffect', 'ablazed'],
+        ['SurgedEffect', 'surged'],
+        ['DrenchedEffect', 'drenched'],
+        ['FrozenEffect', 'frozen']
+    ]) {
+        if (findEffect(agent, battle, statusEffect[0])) {
+            indicators.push(<StatusEffect key={statusEffect[0]} color={colors.getElementalColor(statusEffect[1])}>{statusEffect[1]}</StatusEffect>)
         }
-        const name = statusEffect.name;
-        indicators.push(<StatusEffect key={effect} color={colors.getElementalColor(name)}>{name}</StatusEffect>)
     }
+
     return (
         <div className={battleStyle['status-effects']}>
             {indicators}
@@ -428,8 +475,15 @@ function Sprite({columns=1, rows=1, frameWidth=1, frameHeight=1, duration=1000, 
     );
 }
 
-function APTracker({apNumber}) {
-    const maxAp = 3;
+/**
+ * 
+ * @param {{
+ * apNumber: number,
+ * maxAp: number
+ * }} attribute 
+ * @returns 
+ */
+function APTracker({apNumber, maxAp=3}) {
     const apTextStyle = {
         textAlign: 'center',
         fontSize: '12px'
@@ -453,27 +507,86 @@ function APTracker({apNumber}) {
     );
 }
 
-function BattleControls({player, onStrikeClicked, onAbilityClicked}) {
+/**
+ * 
+ * @param {{
+ * player: BattleAgentData
+ * battleData: BattleData
+ * }} attributes 
+ * @returns 
+ */
+function BattleControls({player, battleData, onStrikeClicked, onAbilityClicked}) {
     if (!player) {
         return;
     }
-    const strikeButtonStyle = {
-        background: 'var(--foreground-rgb)',
-        color: 'black',
-        textShadow: 'none'
+
+    const imbuedElements = [];
+    for (const imbueEffect of findAllEffects(player, battleData, 'ImbueEffect')) {
+        if (!imbuedElements.includes(imbueEffect.inputData.element)) {
+            imbuedElements.push(imbueEffect.inputData.element);
+        }
+    }
+
+    /**@type {(ability?: AbilityData) => string} */
+    const generateGradient = (ability) => {
+        let chosenElements = [];
+
+        if (ability) {
+            if (ability.style === player.weapon.style) {
+                chosenElements = [...imbuedElements];
+            }
+    
+            if (ability.elements) {
+                for (const element of ability.elements) {
+                    chosenElements.push(element);
+                }
+            }
+        }
+        else {
+            chosenElements = [...imbuedElements];
+        }
+
+        if (chosenElements.length === 0) {
+            chosenElements.push(null, null);
+        }
+
+        if (chosenElements.length === 1) {
+            chosenElements.push(chosenElements[0]);
+        }
+
+        let gradient = 'linear-gradient(-45deg';
+        
+        for (let i = 0; i < chosenElements.length; i++) {
+            gradient += ',';
+            const percentage = 100 / chosenElements.length;
+            gradient += `${colors.getElementalColor(chosenElements[i])} ${percentage * i}% ${percentage * (i+1)}%`;
+        }
+
+        gradient += ")"
+        return gradient;
     };
+
+    const strikeButtonStyle = {
+        backgroundImage: `url(${backend.getResourceURL(player.weapon.icon)}) ${imbuedElements.length ? `,${generateGradient()}` : ''}`,
+        backgroundColor: !imbuedElements.length ? 'var(--foreground-rgb)' : ''
+    };
+
+    console.log(strikeButtonStyle.backgroundImage);
 
     const abilityButtons = player.abilities.map((ability, index) => {
         const style = {
-            background: colors.getElementalColor(ability.elements ? ability.elements[0] : null)
+            background: generateGradient(ability)
         };
+        if (index > 4) {
+            style.border = "2px solid var(--foreground-rgb)";
+        }
         return <Button key={index} style={style} className={battleStyle['battle-btn']} onClick={()=>{onAbilityClicked?.(ability)}}>{ability.name}</Button>;
     });
     const strikeText = player.strikeLevel == 2 ? player.weapon.strikeAbility.name : 'Strike';
     return (
         <div className={battleStyle['battle-controls']}>
             <div className={battleStyle['battle-controls-frame']}>
-                <Button style={strikeButtonStyle} className={battleStyle['battle-btn']} onClick={onStrikeClicked}>{strikeText}</Button>
+                <Button style={strikeButtonStyle} className={`${battleStyle['battle-btn']} ${battleStyle['strike-btn']}`} onClick={onStrikeClicked}>{strikeText}</Button>
                 {abilityButtons}
             </div>
         </div>
@@ -694,4 +807,32 @@ function preloadImages(array, preloadImages) {
         list.push(img);
         img.src = backend.getResourceURL(array[i]);
     }
+}
+
+/**
+ * @param {BattleAgent} agent 
+ * @param {BattleData} battle 
+ * @param {string} name
+ * @returns {EffectData|undefined} 
+ */
+function findEffect(agent, battle, name) {
+    return battle.effects.find((effect) => {
+        return effect.className === name && agent.id === effect.targetId;
+    });
+}
+
+/**
+ * @param {BattleAgent} agent 
+ * @param {BattleData} battle 
+ * @param {string} name
+ * @returns {EffectData[]} 
+ */
+function findAllEffects(agent, battle, name) {
+    const effects = [];
+    for (const effect of battle.effects) {
+        if (effect.className === name && agent.id === effect.targetId) {
+            effects.push(effect);
+        }
+    }
+    return effects;
 }

@@ -25,8 +25,9 @@ export default function Profile() {
     };
 
     const abilityRows = player.abilities.map((ability, index) => {
-        return <AbilityView ability={ability} key={index}/>
+        return <AbilityView ability={ability} key={index} showStatGrowth/>
     });
+    const profileImagestyle = player.avatar === 'player_avatar6.webp' ? {top: "auto", bottom: "40px"} : {};
     return (
         <>
             <Head>
@@ -42,7 +43,7 @@ export default function Profile() {
                 <HeaderBarBack title='Profile' onBackClicked={() => { navigate(-1);}}/>
                 <div className={profileStyles['profile-view']}>
                     <div className={profileStyles['profile-avatar']}>
-                        <Image alt="player's avater" src={player.avatar} fill/>
+                        <Image alt="player's avater" style={profileImagestyle} src={player.avatar} fill/>
                     </div>
                     <div style={{fontSize: '1.5em'}}>{player.name}</div>
                     <div>Level {player.level}</div>
@@ -73,10 +74,10 @@ export default function Profile() {
                         <StatSheet.Row>Dagger Victories - {player.trackers.weaponKills.dagger}</StatSheet.Row>
                         <StatSheet.Row lastRow>Defeats - {player.trackers.deaths}</StatSheet.Row>
                     </StatSheet.StatSheet>
-                    {abilityRows.length > 0 && <div className={profileStyles['section-title']}>Abilities</div>}
+                    {abilityRows.length > 0 && <div className={'section-title'}>Abilities</div>}
                     {abilityRows}
                     <div>
-                        <div className={profileStyles['section-title']}>Weapon</div>
+                        <div className={'section-title'}>Weapon</div>
                         <button onClick={() => navigate('/panel/object-view', { state: weaponViewObject })} className={profileStyles['weapon-btn']}><Image alt='current player weapon' className={profileStyles['weapon-img']} src={player.weapon.icon} fill></Image></button>
                     </div>
                 </div>

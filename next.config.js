@@ -14,6 +14,10 @@ const nextConfig = {
             source: '/panel.html',
             destination: '/panel',
           },
+          {
+            source: '/config.html',
+            destination: '/config',
+          },
         ]
       },
     images: {

@@ -54,7 +54,6 @@ function SignUpRender({gameInfo}) {
             navigate('/panel/game')
         })
         .catch(error => {
-            console.log(error);
         });
     };
 
@@ -95,7 +94,7 @@ function SignUpRender({gameInfo}) {
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <link rel="icon" href="/favicon.ico" />
             </Head>
-            <div className={`${pageStyles['page-container-h-center']} ${signUpStyles['signup-container']}`}>
+            <div style={{paddingBottom: "80px"}} className={`${pageStyles['page-container-h-center']} ${signUpStyles['signup-container']}`}>
                 <HeaderBar title={menuSequence[menuIndex].title}/>
                 {UI}
             </div>
@@ -127,14 +126,23 @@ function WeaponMenu({menuControl, startingWeapons, onValueUpdated, currentValue}
             setIsValid(value);
         }
     };
+    const makeObject = (name, icon) => {
+        return {
+            type: 'weapon',
+            content: {
+                icon,
+                name
+            }
+        };
+    };
     const optionData = [
         {
-            UI: <ObjectButton tilt label={startingWeapons.physical.name} imageSrc={startingWeapons.physical.icon} className={signUpStyles['weapon-choice-btn']}/>,
+            UI: <ObjectButton bagObject={makeObject(startingWeapons.physical.name, startingWeapons.physical.icon)} className={signUpStyles['weapon-choice-btn']}/>,
             value: 'physical',
             checked: currentValue === 'physical'
         },
         {
-            UI: <ObjectButton tilt label={startingWeapons.magical.name} imageSrc={startingWeapons.magical.icon} className={signUpStyles['weapon-choice-btn']}/>,
+            UI: <ObjectButton bagObject={makeObject(startingWeapons.magical.name, startingWeapons.magical.icon)} className={signUpStyles['weapon-choice-btn']}/>,
             value: 'magical',
             checked: currentValue === 'magical'
         }
@@ -198,7 +206,7 @@ function AvatarMenu({menuControl, startingAvatars=[], currentValue, onValueUpdat
     };
     const avatarOptions = startingAvatars.map((avatar) => {
         return {
-                UI: <div className={signUpStyles['avatar-btn']}><Image sizes='96px' alt='player avater choice' fill src={avatar} className={signUpStyles['avatar-choice-btn']}/></div>,
+                UI: <div className={signUpStyles['avatar-btn']}><Image style={{objectPosition: "top"}} sizes='96px' alt='player avater choice' fill src={avatar} className={signUpStyles['avatar-choice-btn']}/></div>,
                 value: avatar,
                 checked: currentValue === avatar
             };
@@ -248,7 +256,7 @@ function SendOffScreen({menuControl, onBeginAdventure}) {
 
 function SignUpNav({enableBack=false, enableContinue=false, enableCustomButton=false, customButtonText, menuControl, onCustomButtonClick=()=>{}}) {
     return (
-        <div className={signUpStyles['flex-gap-h']}>
+        <div className={`${signUpStyles['flex-gap-h']} ${signUpStyles['bottom-float']}`}>
             {enableBack && <Button className={signUpStyles['back-btn']} onClick={() => menuControl.back()}>Back</Button>}
             {enableContinue && <Button onClick={() => menuControl.next()}>Continue</Button>}
             {enableCustomButton && <Button className={signUpStyles['custom-btn']} onClick={() => onCustomButtonClick()}>{customButtonText}</Button>}

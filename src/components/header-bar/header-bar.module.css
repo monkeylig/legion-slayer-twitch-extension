@@ -21,6 +21,7 @@
 
 .header-bar-back-btn {
     border: 0;
+    width: 30px;
     height: inherit;
     color: var(--foreground-rgb);
     background: rgba(255, 255, 255, 0);

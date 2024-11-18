@@ -1,3 +1,7 @@
+/**
+ * @import {PlayerData} from '@/utilities/backend-calls'
+ */
+
 import Head from 'next/head'
 
 import HeaderBarBack from '@/components/header-bar/header-bar-back'
@@ -14,7 +18,7 @@ import { useNavigate } from 'react-router-dom';
 
 export default function Bag() {
     const navigate = useNavigate();
-    const [player, setPlayer] = useState(frontendContext.get().player);
+    const [player, setPlayer] = /**@type {[PlayerData, (obj: PlayerData) => void]}*/(useState(frontendContext.get().player));
     if (!player) {
         return;
     }
@@ -40,21 +44,25 @@ export default function Bag() {
             object: bagObject,
             mode: 'bag'
         };
-        return <BagObjectButton tilt={bagObject.type === 'weapon'} label={bagObject.content.name} imageSrc={bagObject.content.icon} key={bagObject.id}
-        onMoveClicked={() => {moveObject(bagObject.id);}} onClick={()=>{ navigate('/panel/object-view', { state: urlObject }); }}/>
+        let count;
+        if (bagObject.content) {
+            count = bagObject.content.count;
+        }
+        return <BagObjectButton bagObject={bagObject} key={bagObject.id} onMoveClicked={() => {moveObject(bagObject.id);}}
+        onClick={()=>{ navigate('/panel/object-view', { state: urlObject }); }}/>
     });
 
     for(let i=0; i < Math.max(0, player.bag.capacity - player.bag.objects.length); i++) {
         bagButtons.push(<BagObjectButton empty key={i}/>);
     }
-
+console.log(player.bag.objects);
     const unclaimedButtons = player.lastDrops.objects.map(object => {
         const urlObject = {
             object: object,
             mode: 'claim'
         };
         return (
-            <ClaimObjectButton tilt={object.type === 'weapon'} label={object.content.name} imageSrc={object.content.icon} key={object.id}
+            <ClaimObjectButton object={object} key={object.id}
                 onClaimClicked={() => {claimObject(object.id);}} onClick={()=>{ navigate('/panel/object-view', { state: urlObject }); }}/>
         );
     });

@@ -4,7 +4,7 @@ export default function TextBox({label='Label', limit, onInput, value, min, max,
     return (
         <div className={`${className} ${textBoxStyle['rpg-text-box']}`}>
             <span>{label}</span>
-            <input maxLength={limit ? limit : ""} type={type} required value={value} min={min} max={max} onInput={onInput}/>
+            <input style={{color: "black"}} maxLength={limit ? limit : ""} type={type} required value={value} min={min} max={max} onInput={onInput}/>
         </div>
     );
 }

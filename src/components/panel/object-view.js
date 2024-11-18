@@ -1,6 +1,6 @@
 /**
- * @import {BattleStep, HealStep, AgentData, ItemData} from "@/utilities/backend-calls"
- * @import {CollectionContainer} from '@/utilities/backend-calls'
+ * @import {BattleStep, HealStep, AgentData, ItemData, AbilityData, CollectionContainer} from "@/utilities/backend-calls"
+ * @import {GrowthObject} from '@/utilities/game-stats'
  */
 
 import HeaderBarBack from '@/components/header-bar/header-bar-back';
@@ -21,6 +21,7 @@ import Currency from '@/components/currency/currency';
 import { useLocation, useNavigate } from 'react-router-dom';
 import LabeledMeterBar from '../meter-bar/labeled-meter-bar';
 import RPGNumber from '@/utilities/rpg-number';
+import { calcWeaponGrowthStats } from '@/utilities/game-stats';
 
 const MAX_ABILITIES = 5;
 
@@ -74,7 +75,7 @@ export default function ObjectView() {
             <div className={objectViewStyle['icon-display']}>
                 <Image sizes='318px' alt='object icon' style={{objectFit: 'contain', ...tiltStyle}} fill src={object[container].icon}/>
                 <div className={objectViewStyle['live-stats']}>
-                    {location === 'shop' && <Currency>{player.coins}</Currency>}
+                    {controlMode === 'shop' && <Currency>{player.coins}</Currency>}
                     {(numInBag != 0 && object.type === 'item') && <span>x{numInBag} in Bag</span>}
                     {(object[container].count && controlMode === 'inventory') && <span>x{object[container].count}</span>}
                 </div>
@@ -255,6 +256,10 @@ function InventoryControls({object, pageId, onMove, onObjectUpdate}) {
 }
 
 function WeaponData({weapon}) {
+    if (!weapon) {
+        return;
+    }
+
     return (
     <>
         <StatSheet.StatSheet>
@@ -263,14 +268,8 @@ function WeaponData({weapon}) {
             <StatSheet.Row>Base Damage - {weapon.baseDamage}</StatSheet.Row>
             <StatSheet.Row lastRow>Speed - {weapon.speed}</StatSheet.Row>
         </StatSheet.StatSheet>
-        <AbilityData ability={{...weapon.strikeAbility, speed: weapon.speed}}/>
-        <div className={objectViewStyle['data-title']}>Level Up Bonus</div>
-        <StatSheet.StatSheet>
-            <StatSheet.Row>+{weapon.statGrowth.maxHealth} Max Health</StatSheet.Row>
-            <StatSheet.Row>+{weapon.statGrowth.strength} Strength</StatSheet.Row>
-            <StatSheet.Row>+{weapon.statGrowth.magic} Magic</StatSheet.Row>
-            <StatSheet.Row lastRow>+{weapon.statGrowth.defense} Defense</StatSheet.Row>
-        </StatSheet.StatSheet>
+        <AbilityData ability={{...weapon.strikeAbility, speed: weapon.speed}} showStatGrowth={false}/>
+        <StatSheet.StatGrowthTable growthObject={calcWeaponGrowthStats(weapon)}/>
     </>
     );
 }
@@ -286,7 +285,14 @@ function BookData({book, inBag, bookId, onPlayerUpdate}) {
     );
 }
 
-function AbilityData({ability, requirement, inBag, abilityBookId, abilityIndex, onPlayerUpdate = ()=>{}}) {
+/**
+ * 
+ * @param {{
+ * ability: AbilityData
+ * }} attributes 
+ * @returns 
+ */
+function AbilityData({ability, requirement, inBag, abilityBookId, abilityIndex, showStatGrowth=true, onPlayerUpdate = ()=>{}}) {
     const player = frontendContext.get().player;
     const unlocked = requirement && requirement.count >= requirement.requiredCount;
     const equipped = player.abilities.find(equippedAbility => equippedAbility.name === ability.name) != undefined;
@@ -309,9 +315,18 @@ function AbilityData({ability, requirement, inBag, abilityBookId, abilityIndex, 
         dialog.close();
     }
 
-    const referencedAbilities = ability.addAbilities?.map((_ability, index) => {
-        return <AbilityView key={index} ability={_ability}/>;
-    });
+    const referencedAbilities = [];
+    if (ability.addAbility) {
+        referencedAbilities.push(<AbilityView key={ability.addAbility.name} ability={ability.addAbility}/>);
+    }
+
+    if (ability.postActions) {
+        for (const action of ability.postActions) {
+            if (action.addAbility) {
+                referencedAbilities.push(<AbilityView key={action.addAbility.name} ability={action.addAbility}/>);
+            }
+        }
+    }
 
     const replacedAbilities = player.abilities.map((replacedAbility, index) => {
         return (
@@ -322,7 +337,7 @@ function AbilityData({ability, requirement, inBag, abilityBookId, abilityIndex, 
     });
     return (
         <>
-            <AbilityView ability={ability}>
+            <AbilityView ability={ability} showStatGrowth={showStatGrowth}>
                 {(!unlocked && requirement) && <span style={{textAlign: 'center'}}>{requirement.description}</span>}
                 {(!unlocked && requirement) && <span style={{textAlign: 'center', color: colors.red}}>{requirement.count}/{requirement.requiredCount}</span>}
                 {(unlocked && !equipped && inBag) && <AsyncButton className={objectViewStyle['action-btn']} onClick={equipAbility}>equip</AsyncButton>}

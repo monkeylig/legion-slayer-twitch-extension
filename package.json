@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build && npm run zip",
+    "build": "next build --no-mangling && npm run zip",
     "start": "next start",
     "lint": "next lint",
     "zip": "cd out && bestzip ../twitch-ext.zip *"

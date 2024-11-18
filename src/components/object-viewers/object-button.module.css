@@ -1,4 +1,5 @@
 .object-button {
+    position: relative;
     border-radius: 25px;
     background: var(--background-deep-rgb);
     border: 0;

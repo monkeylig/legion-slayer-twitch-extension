@@ -8,6 +8,7 @@
 .bag-preview {
     display: flex;
     gap: 2px;
+    padding-top: 5px;
     border-radius: 5px;
     border: 1px solid var(--foreground-rgb);
     overflow-x: scroll;
@@ -22,6 +23,7 @@
     align-items: flex-start;
     gap: 10px;
     flex-wrap: wrap;
+    padding-top: 6px;
 }
 
 .bag-full-notification {
