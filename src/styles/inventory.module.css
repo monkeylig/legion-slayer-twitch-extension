@@ -5,6 +5,11 @@
     flex-direction: column;
 }
 
+.bag-controls {
+    display: flex;
+    align-items: flex-end;
+}
+
 .bag-preview {
     display: flex;
     gap: 2px;
@@ -18,8 +23,15 @@
     flex-shrink: 0;
 }
 
+.bag-button {
+    width: 125px;
+    background: var(--blue);
+    margin: 5px;
+}
+
 .inventory-container {
     display: flex;
+    justify-content: center;
     align-items: flex-start;
     gap: 10px;
     flex-wrap: wrap;
@@ -27,7 +39,7 @@
 }
 
 .bag-full-notification {
-    position: sticky;
+    position: fixed;
     border-radius: 5px;
     background: var(--blue);
     padding: 0px 5px;
@@ -67,6 +79,7 @@
 .page-tracker {
     display: flex;
     height: 43px;
+    width: 50px;
     padding: 14px 3px 14px 4px;
     justify-content: center;
     background: var(--blue);

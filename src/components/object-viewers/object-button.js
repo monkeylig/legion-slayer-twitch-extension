@@ -1,8 +1,17 @@
 import Image from "next/image";
 import buttonStyles from "./object-button.module.css"
 import battleStyle from "@/styles/battle.module.css"
+import { RPGTag } from "../tag/rpg-tag";
 
-export default function ObjectButton({bagObject, showCount=true, className='', onClick, children}) {
+export default function ObjectButton({bagObject, showCount=true, empty=false, className='', onClick, children}) {
+    const preventDragHandler = (e) => {
+        e.preventDefault();
+    }
+
+    if (empty) {
+        return <div className={`${buttonStyles['object-button']} ${className}`} onDragStart={preventDragHandler} onClick={onClick}/>
+    }
+
     if (!bagObject) {
         return;
     }
@@ -17,16 +26,10 @@ export default function ObjectButton({bagObject, showCount=true, className='', o
         count = object.count;
     }
 
-    const preventDragHandler = (e) => {
-        e.preventDefault();
-      }
     const rotateStyle = bagObject.type === 'weapon' ? buttonStyles['rotate'] : '';
     return (
     <div className={`${buttonStyles['object-button']} ${className}`} onDragStart={preventDragHandler} onClick={onClick}>
-        {!!count && showCount && 
-        <div className={battleStyle['item-count-area']}>
-            <div className={battleStyle['item-count']}>{count}</div>
-        </div>}
+        {!!count && showCount && <RPGTag>{count}</RPGTag>}
         <div className={`${buttonStyles['icon-container']}`} onDragStart={preventDragHandler}>
             {object.icon && <Image sizes="65px" alt='image button' className={`${buttonStyles['button-icon']} ${rotateStyle}`} fill src={object.icon} onDragStart={preventDragHandler}/>}
         </div>

@@ -27,6 +27,11 @@
  * }} ApChangeStep
  * 
  * @typedef {BattleStep & {
+ * targetId: string,
+ * netChange: number
+ * }} MaxApChangeStep
+ * 
+ * @typedef {BattleStep & {
  * successful: boolean,
  * effect: EffectData
  * }} AddEffectStep
@@ -34,4 +39,5 @@
  * @typedef {AddEffectStep} RemoveEffectStep
  */
 
-export default {};
+const empty = {};
+export default empty;

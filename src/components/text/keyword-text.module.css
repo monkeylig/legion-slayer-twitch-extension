@@ -1,6 +1,5 @@
 .keywordText {
-    color: black;
-    background: white;
+    text-decoration: underline;
     border-radius: 7px;
     padding: 0 2px;
 }

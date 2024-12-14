@@ -15,8 +15,8 @@
     color: var(--foreground-rgb);
 }
 
-.object-button:hover {
-    background: black;
+.object-button:active {
+    background: rgba(3, 6, 24, 0.5);
 }
 
 .icon-container {
@@ -39,7 +39,7 @@
 }
 
 .bag-move-btn {
-    background: var(--red);
+    background: var(--orange);
     padding: 0px 8px;
     height: 18px;
     font-size: inherit;

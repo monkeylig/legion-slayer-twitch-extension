@@ -97,5 +97,25 @@ const textStyleData = [
     {
         text: /[wW]eapon speed/,
         style: DefineKeyword("The stat that determines how fast your strike and strike ability moves are. Whichever player uses the fastest move will go first.")
-    }
+    },
+    {
+        text: /[cC]ounter/,
+        style: DefineKeyword("The target's move is cancelled and does nothing.")
+    },
+    {
+        text: /AP/,
+        style: DefineKeyword("Ability Points. these allow you to use abilities. Abilities have an Ability Point cost, which must be paid to use an ability in battle.")
+    },
+    {
+        text: /[gG]ain the abilit(?:y|ies) [\w\s]*/,
+        style: DefineKeyword("Gain an extra ability to use in battle. See the ability described below.")
+    },
+    {
+        text: /[bB]ase damage/,
+        style: DefineKeyword("An attack's destructive power. It is increased by your level and your strength or magic, but it is decreased by the target's defense.")
+    },
+    {
+        text: /[sS]trikes?/,
+        style: DefineKeyword("The first option in the battle menu. It's free it use and gives you one AP so that you can use your abilities. Unfortunately, this attack is very weak.")
+    },
 ];

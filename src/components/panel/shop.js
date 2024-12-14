@@ -15,7 +15,7 @@ import Dialog from '@/components/dialog/dialog';
 import Icon from '@/components/icon/icon';
 import AsyncButton from '@/components/button/async-button';
 import Currency from '@/components/currency/currency';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router";
 
 
 export default function Shop() {

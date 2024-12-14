@@ -10,7 +10,7 @@ import colors from '@/utilities/colors'
 import StatSheet from '@/components/stat-sheet/stat-sheet'
 import frontendContext from '@/utilities/frontend-context'
 import AbilityView from '@/components/stat-sheet/ability-view'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from "react-router"
 import RPGNumber from '../../utilities/rpg-number'
 
 export default function Profile() {
@@ -63,6 +63,10 @@ export default function Profile() {
                             <MeterBar progress={player.exp/player.expToNextLevel} barColor={colors.blue} className={profileStyles['stat-meter']}/>
                         </div>
                     </div>
+                    <div style={{height: '150px'}}>
+                        <div className={'section-title'}>Weapon</div>
+                        <button onClick={() => navigate('/panel/object-view', { state: weaponViewObject })} className={profileStyles['weapon-btn']}><Image alt='current player weapon' className={profileStyles['weapon-img']} src={player.weapon.icon} fill></Image></button>
+                    </div>
                     <StatSheet.StatSheet>
                         <StatSheet.Row>Strength - {RPGNumber(player.strength)}</StatSheet.Row>
                         <StatSheet.Row>Magic - {RPGNumber(player.magic)}</StatSheet.Row>
@@ -76,10 +80,6 @@ export default function Profile() {
                     </StatSheet.StatSheet>
                     {abilityRows.length > 0 && <div className={'section-title'}>Abilities</div>}
                     {abilityRows}
-                    <div>
-                        <div className={'section-title'}>Weapon</div>
-                        <button onClick={() => navigate('/panel/object-view', { state: weaponViewObject })} className={profileStyles['weapon-btn']}><Image alt='current player weapon' className={profileStyles['weapon-img']} src={player.weapon.icon} fill></Image></button>
-                    </div>
                 </div>
             </div>
         </>

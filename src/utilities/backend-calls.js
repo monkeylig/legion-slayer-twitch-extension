@@ -5,7 +5,8 @@ const resourceBackendURL = 'https://storage.googleapis.com/web_rpg_resources/';
 
 const cache = {
     game: null,
-    shop: null
+    shop: null,
+    inventory: {}
 };
 
 /**
@@ -41,7 +42,8 @@ async function backendCall(endpoint, method='GET', payload) {
     const fetchOptions = {
         credentials: 'omit',
         mode: 'cors',
-        method: method
+        method: method,
+        keepalive: true
     }
 
     if(payload) {
@@ -58,7 +60,6 @@ async function backendCall(endpoint, method='GET', payload) {
     if(response.status != 200) {
         throw data;
     }
-
     return data;
 }
 
@@ -157,13 +158,15 @@ async function buy(playerId, shopId, productId, amount=1) {
 }
 
 async function moveObjectFromBagToInventory(playerId, objectId) {
-    const player = await backendCall(endpoint_url('move_object_from_bag_to_inventory', `playerId=${playerId}`, `objectId=${objectId}`), 'POST');
-    frontendContext.setPlayer(player);
-    return player;
+    const collections = await backendCall(endpoint_url('move_object_from_bag_to_inventory', `playerId=${playerId}`, `objectId=${objectId}`), 'POST');
+    cache.inventory[collections.page.id] = collections.page;
+    frontendContext.setPlayer(collections.player);
+    return collections;
 }
 
 async function moveObjectFromInventoryToBag(playerId, pageId, objectId) {
     const collections = await backendCall(endpoint_url('move_object_from_inventory_to_bag', `playerId=${playerId}`, `pageId=${pageId}`, `objectId=${objectId}`), 'POST');
+    cache.inventory[collections.page.id] = collections.page;
     frontendContext.setPlayer(collections.player);
     return collections;
 }

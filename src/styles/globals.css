@@ -10,11 +10,12 @@
   --background-color: 58, 71, 80;
   --background-deep-rgb: #303841;
   --green: #2FD622;
-  --blue: #2291D6;
-  --dark-blue: rgb(21, 100, 150);
+  --blue: #106CA5;
+  --dark-blue: #0c4f79;
   --red: #D72323;
   --dark-red: #a51919;
   --orange: #D6A022;
+  --dark-orange: #ac8220;
 }
 
 /*@media (prefers-color-scheme: dark) {}*/
@@ -36,6 +37,7 @@
     -webkit-user-select: none; /* Safari */
     -ms-user-select: none; /* IE 10 and IE 11 */
     user-select: none; /* Standard syntax */
+    -webkit-tap-highlight-color: transparent;
   }
 
   *::-webkit-scrollbar {
@@ -66,8 +68,6 @@ body {
   color: var(--foreground-rgb);
   background: var(--background-rgb);
   font-size: 16px;
-
-  overflow-y: auto;
   overflow-x: hidden;
 }
 

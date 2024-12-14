@@ -1,6 +1,6 @@
 import '@/styles/globals.css'
 import frontendContext from '@/utilities/frontend-context';
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 
 export default function App({ Component, pageProps }) {
     useEffect(() => {

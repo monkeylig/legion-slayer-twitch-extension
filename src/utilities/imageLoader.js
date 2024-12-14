@@ -11,7 +11,7 @@ export default function imageLoader({ src, width, quality }) {
     // if(process.env.NODE_ENV === 'development') {
     //     return `${backend.getResourceURL(src)}?${performance.now()}`
     // }
-    if (src.startsWith('.')) {
+    if (src.startsWith('/') || src.startsWith('.')) {
         return src;
     }
     return `${backend.getResourceURL(src)}`

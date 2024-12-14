@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build --no-mangling && npm run zip",
+    "build": "next build --no-mangling && node post-build.js && npm run zip",
     "start": "next start",
     "lint": "next lint",
     "zip": "cd out && bestzip ../twitch-ext.zip *"
@@ -13,7 +13,7 @@
     "next": "14.0.1",
     "react": "^18",
     "react-dom": "^18",
-    "react-router-dom": "^6.22.0"
+    "react-router": "^7.0.2"
   },
   "devDependencies": {
     "bestzip": "^2.2.1",

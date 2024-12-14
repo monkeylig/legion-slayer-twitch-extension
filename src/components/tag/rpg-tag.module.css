@@ -1,0 +1,18 @@
+.tag-area {
+    position: absolute;
+    top: -8px;
+    width: 100%;
+    height: 24px;
+    z-index: 1;
+    padding-right: 8px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    pointer-events: none;
+}
+
+.tag-content {
+    background: var(--blue);
+    border-radius: 9px;
+    padding: 1px 8px;
+}

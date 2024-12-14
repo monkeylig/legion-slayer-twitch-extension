@@ -18,7 +18,7 @@ import AsyncButton from '@/components/button/async-button';
 import AbilityView from '@/components/stat-sheet/ability-view';
 import Dialog from '@/components/dialog/dialog';
 import Currency from '@/components/currency/currency';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from "react-router";
 import LabeledMeterBar from '../meter-bar/labeled-meter-bar';
 import RPGNumber from '@/utilities/rpg-number';
 import { calcWeaponGrowthStats } from '@/utilities/game-stats';
@@ -150,23 +150,24 @@ function BagControls({object, inBag, onPlayerUpdate}) {
         dialog.showModal();
     };
 
+    const isEquipped = object.content.name === player.weapon.name;
     let moveText;
     if(inBag) {
         moveText = 'move';
     }
     else if(!inBag) {
-        moveText = 'not in bag';
+        moveText = 'in inventory';
     }
     return (
         <>
             {object.type === 'weapon' &&
                 <AsyncButton disabled={!inBag} className={objectViewStyle['action-btn']} onClick={equipWeapon}>
-                    {object.content.name === player.weapon.name ? 'equipped' : 'equip'}
+                    {isEquipped ? 'equipped' : 'equip'}
                 </AsyncButton>}
 
-            <AsyncButton disabled={!inBag} style={{background: colors.red}} className={objectViewStyle['action-btn']} onClick={onClick}>
+            {!isEquipped && <AsyncButton disabled={!inBag} style={{background: colors.orange}} className={objectViewStyle['action-btn']} onClick={onClick}>
                 {moveText}
-            </AsyncButton>
+            </AsyncButton>}
             {(object.type && object.type === 'item' && /**@type {ItemData}*/(object.content).outOfBattle) &&
             <AsyncButton style={{background: colors.blue}} className={objectViewStyle['action-btn']} onClick={useItem}>
                 Use

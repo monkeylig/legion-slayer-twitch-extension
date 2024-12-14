@@ -1,7 +1,24 @@
+/**
+ * @import ChildProp from "next/dist/server/app-render/types"
+ */
+
 import Button from "../button/button";
 import dialogStyles from "./dialog.module.css"
 
-export default function Dialog({open, enableExit, id=`${Math.random()}`, className='', children}) {
+/**
+ * 
+ * @param {{
+ * open: boolean,
+ * enableExit: boolean,
+ * id: string,
+ * onClose: () => void,
+ * className: string,
+ * style: StylePropertyMap,
+ * children: ChildProp
+ * }} attribute 
+ * @returns 
+ */
+export default function Dialog({open, enableExit, id=`${Math.random()}`, onClose, className='', style, children}) {
 
     const onClick = (e) => {
         if (e.currentTarget !== e.target){
@@ -17,6 +34,7 @@ export default function Dialog({open, enableExit, id=`${Math.random()}`, classNa
             e.clientY > dialogDimensions.bottom
           ) {
             dialog.close();
+            onClose();
           }
     };
 
@@ -25,11 +43,11 @@ export default function Dialog({open, enableExit, id=`${Math.random()}`, classNa
         if (!dialog) {
             return;
         }
-
         dialog.close();
+        onClose();
     };
     return (
-        <dialog open={open} onClick={onClick} id={id} className={className}>
+        <dialog open={open} onClick={onClick} id={id} className={className} style={style}>
             {children}
             {enableExit && <Button className={`${dialogStyles['exit-btn']} material-symbols-outlined`} onClick={onExitClicked}>close</Button>}
         </dialog>);

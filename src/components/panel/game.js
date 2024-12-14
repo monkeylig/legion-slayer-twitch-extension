@@ -21,8 +21,9 @@ import Dialog from '@/components/dialog/dialog';
 import LabeledMeterBar from '@/components/meter-bar/labeled-meter-bar';
 import colors from '@/utilities/colors';
 import AsyncButton from '@/components/button/async-button';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from "react-router";
 import AbilityView from '../stat-sheet/ability-view';
+import LoadingScreen from '../loading/loading-screen';
 
 export default function Game() {
     const location = useLocation();
@@ -34,9 +35,9 @@ export default function Game() {
     }, [location.state]);
     const [data, isPending, error] = useAsync(joinGame);
 
-    const pendingUI = backend.cache.game ? <GameRender game={backend.cache.game}/> : <h1>Loading Game...</h1>
+    const pendingUI = backend.cache.game ? <GameRender game={backend.cache.game}/> : <LoadingScreen/>
 
-    return (        
+    return (
         <div>
             {isPending && pendingUI}
             {data && <GameRender game={data}/>}
@@ -77,7 +78,7 @@ function GameRender({game}) {
                 </div>
                 <div style={{height: '70px'}}></div>
                 <div className={gameStyles['game-nav']}>
-                    <Button className={`${gameStyles['nav-button']} material-symbols-outlined`} onClick={() => { navigate('/panel/bag') }}>backpack</Button>
+                    <Button className={`${gameStyles['nav-button']} material-symbols-outlined`} onClick={() => { navigate('/panel/inventory', {state: {page: 0}}); }}>backpack</Button>
                     <ProfileBar player={player}/>
                     <Button className={`${gameStyles['nav-button']} material-symbols-outlined`} onClick={() => {navigate('/panel/shop')}}>store</Button>
                 </div>
@@ -163,7 +164,7 @@ function MonsterDialog({monster, id, gameId}) {
         navigate('/panel/battle', { state: urlObject });
     };
     return (
-        <Dialog id={id} enableExit>
+        <Dialog id={id} enableExit style={{background: '#493936'}}>
             <div className={gameStyles['monster-dialog']}>
                 <div className={gameStyles['monster-avatar']}>
                     <Image sizes='271px' alt='Avatar of a monster' fill src={monster.avatar}/>

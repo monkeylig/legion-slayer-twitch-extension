@@ -7,12 +7,12 @@ import frontendContext from '@/utilities/frontend-context'
 import backend from '@/utilities/backend-calls'
 import Button from '@/components/button/button'
 import colors from '@/utilities/colors'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from "react-router"
 
 export default function Loading() {
     const navigate = useNavigate();
-    const location = useLocation();
-    const [viewerId, setViewerId] = useState(null);
+    const [accountStatus, setAccountStatus] = useState('loading');
+    const [viewerId, setViewerId] = useState();
 
     const tryGoToGame = useCallback(() => {
         const context = frontendContext.get();
@@ -29,19 +29,24 @@ export default function Loading() {
     }, [navigate]);
 
     useEffect(() => {
-        frontendContext.wait()
-        .then(() => {
-            setViewerId()
-            if(!frontendContext.viewerId) {
+            if (viewerId === undefined) {
+                return;
+            }
+
+            if(viewerId === null) {
+                setAccountStatus('anonymous');
                 window.Twitch.ext.actions.requestIdShare();
             }
+
             else {
                 tryGoToGame();
             }
-        });
     }, [viewerId, tryGoToGame]);
 
     useEffect(() => {
+        frontendContext.wait().then(() => {
+            setViewerId(frontendContext.viewerId);
+        });
         frontendContext.onContextUpdated(() => {
             setViewerId(frontendContext.viewerId);
         });
@@ -63,10 +68,12 @@ export default function Loading() {
             </Head>
             <div className={pageStyles['page-container-h-center']}>
                 <HeaderBar title='Loading'/>
-                <div className={pageStyles['page-container-v-center']}>
-                    <Button style={{background: colors.blue, marginTop: '10px'}} onClick={continueClick}>Play Anonymously</Button>
-                    <p>Progress may not be saved, maybe</p>
-                </div>
+                {accountStatus === 'loading' && <p>Finding Account</p>}
+                {accountStatus === 'anonymous' && 
+                    <div className={pageStyles['page-container-v-center']}>
+                        <Button style={{background: colors.blue, marginTop: '10px'}} onClick={continueClick}>Play Anonymously</Button>
+                        <p>Progress may not be saved, maybe</p>
+                    </div>}
             </div>
         </>
     )

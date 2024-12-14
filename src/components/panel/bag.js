@@ -14,7 +14,7 @@ import frontendContext from '@/utilities/frontend-context';
 import backend from '@/utilities/backend-calls';
 import { useState } from 'react';
 import ClaimObjectButton from '@/components/object-viewers/claim-object-button';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router";
 
 export default function Bag() {
     const navigate = useNavigate();
@@ -55,7 +55,9 @@ export default function Bag() {
     for(let i=0; i < Math.max(0, player.bag.capacity - player.bag.objects.length); i++) {
         bagButtons.push(<BagObjectButton empty key={i}/>);
     }
-console.log(player.bag.objects);
+
+    console.log(bagButtons.length);
+
     const unclaimedButtons = player.lastDrops.objects.map(object => {
         const urlObject = {
             object: object,
@@ -90,7 +92,6 @@ console.log(player.bag.objects);
                 }
             </div>
             <div style={{height: '80px'}}/>
-            <Button className={`${bagStyles['inventory-btn']} material-symbols-outlined`} onClick={() => { navigate('/panel/inventory', {state: {page: 0}}); }}>inventory_2</Button>
         </>
     );
 }

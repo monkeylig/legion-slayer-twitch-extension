@@ -11,7 +11,7 @@ function getElementalColor(element) {
             return '#22CAD6';
         case 'water':
         case 'drenched':
-            return '#2291D6'
+            return '#6AADD6'
         default:
             return '#7B7B7B';
     }

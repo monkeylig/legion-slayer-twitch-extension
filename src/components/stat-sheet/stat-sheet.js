@@ -1,8 +1,5 @@
 import statSheetStyles from './stat-sheet.module.css'
 
-import statUpImage from '../../../public/stat_up.png'
-import statDownImage from '../../../public/stat_down.png'
-import statMidImage from '../../../public/stat_mid.png'
 import Icon from '../icon/icon';
 
 function StatSheet({className='', children}) {
@@ -34,15 +31,15 @@ function Row({lastRow, className='', children}) {
 */
 function GrowthStatRow({stat, total, lastRow, children}) {
    const ratio = stat/total;
-   let statImage = statMidImage;
+   let statImage = '/stat_mid.png';
    if (ratio > 0.25) {
-       statImage = statUpImage;
+       statImage = '/stat_up.png';
    }
    else if (ratio < 0.25) {
-       statImage = statDownImage;
+       statImage = '/stat_down.png';
    }
 
-   return <Row lastRow={lastRow}><div>{children} <Icon inline style={{width: '10px', height: '10px'}} src={statImage}/></div></Row>
+   return <Row lastRow={lastRow}><div>{children} <Icon inline width={10} height={10} style={{width: '10px', height: '10px'}} src={statImage}/></div></Row>
 
 }
 

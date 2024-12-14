@@ -12,7 +12,7 @@ import useAsync from '@/utilities/useAsync'
 import backend from '@/utilities/backend-calls'
 import Image from 'next/image'
 import frontendContext from '@/utilities/frontend-context'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from "react-router"
 
 export default function SignUp() {
     const [data, isPending, error] = useAsync(backend.getGameInfo);
@@ -206,7 +206,7 @@ function AvatarMenu({menuControl, startingAvatars=[], currentValue, onValueUpdat
     };
     const avatarOptions = startingAvatars.map((avatar) => {
         return {
-                UI: <div className={signUpStyles['avatar-btn']}><Image style={{objectPosition: "top"}} sizes='96px' alt='player avater choice' fill src={avatar} className={signUpStyles['avatar-choice-btn']}/></div>,
+                UI: <div className={signUpStyles['avatar-btn']}><Image style={{objectPosition: "top"}} sizes='96px' alt='player avatar choice' fill src={avatar} className={signUpStyles['avatar-choice-btn']}/></div>,
                 value: avatar,
                 checked: currentValue === avatar
             };
@@ -247,7 +247,7 @@ function SendOffScreen({menuControl, onBeginAdventure}) {
     return (
         <>
             <p className={signUpStyles['center-text']}>
-                You are now ready to begin your new adventure! Go on and slay monsters, level up, and descover new powerful weapons and abilities!
+                You are now ready to begin your new adventure! Go on and slay monsters, level up, and discover new powerful weapons and abilities!
             </p>
             <SignUpNav enableBack enableCustomButton customButtonText='Begin Adventure' menuControl={menuControl} onCustomButtonClick={onBeginAdventure}/>
         </>

@@ -38,7 +38,7 @@
     align-items: center;
     font-size: 1.25em;
     border-radius: 10px;
-    background: var(--background-deep-rgb);
+    background: rgba(0, 0, 0, 0.226);
 }
 
 .tooltip {

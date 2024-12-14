@@ -6,16 +6,15 @@ export default function AsyncButton({disabled, className='', style={}, onClick, 
     const [inputDelayOn, setInputDelayOn] = useState(false);
     const [content, setContent] = useState(children);
 
-    const asyncOnClick = () => {
+    const asyncOnClick = (e) => {
         if(!onClick) {
             return;
         }
-        
         setInputDelayOn(true);
         setContent('pending');
 
-        Promise.resolve(onClick())
-        .then(() => {
+        Promise.resolve(onClick(e))
+        .then((value) => {
             setTimeout(() => {
                 setInputDelayOn(false);
                 setContent(children);

@@ -12,7 +12,8 @@ import { useCallback, useEffect, useState } from 'react'
 import frontendContext from '@/utilities/frontend-context'
 import backend from '@/utilities/backend-calls'
 import useAsync from '@/utilities/useAsync'
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router";
+import LoadingScreen from '@/components/loading/loading-screen';
 
 export default function Inventory() {
     const navigate = useNavigate();
@@ -22,10 +23,18 @@ export default function Inventory() {
     const [pageDataRequest, setPageDataRequest] = useState('pending');
 
     const currentPage = location.state.page ? location.state.page : 0;
+    const leger = player.inventory.leger;
+    const currentPageId = leger[currentPage] ? leger[currentPage].id : '';
+    const bagFull = player.bag.objects.length >= player.bag.capacity;
+    const playerId = player.id;
     
-    const refreshPage = useCallback((_player=player) => {
+    const refreshPage = useCallback(() => {
         setPageDataRequest('pending');
-        backend.getInventoryPage(_player.id, _player.inventory.leger[currentPage].id)
+        if (!leger[currentPage]) {
+            setPageDataRequest('complete');
+            return;
+        }
+        backend.getInventoryPage(playerId, leger[currentPage].id)
         .then(page => {
             setPageDataRequest('complete');
             setPageData(page);
@@ -33,37 +42,25 @@ export default function Inventory() {
         .catch(error => {
             setPageDataRequest('error');
         });
-    }, [currentPage, player]);
+    }, [currentPage, leger, playerId]);
 
     useEffect(() => {
-        if(player.inventory.leger.length <= currentPage) {
-            setPageDataRequest('complete');
-            return;
-        }
-
         refreshPage();
     }, [currentPage, player.inventory.leger.length, refreshPage]);
 
-    const moveObjectToInventory = objectId => {
-        backend.moveObjectFromBagToInventory(player.id, objectId)
-        .then(player => {
-            setPlayer(player);
-            refreshPage(player);
-        })
-        .catch(error => {});
+    const moveObjectToInventory = async (objectId) => {
+        const collections = await backend.moveObjectFromBagToInventory(player.id, objectId);
+        setPlayer(collections.player);
+        setPageData(collections.page);
     };
 
-    const bagFull = player.bag.objects.length >= player.bag.capacity;
-    const moveObjectToBag = objectId => {
+    const moveObjectToBag = async (objectId) => {
         if(bagFull) {
-            return;
+            throw new Error("Bag is full");
         }
-        backend.moveObjectFromInventoryToBag(player.id, player.inventory.leger[currentPage].id, objectId)
-        .then(collections => {
-            setPlayer(collections.player);
-            setPageData(collections.page);
-        })
-        .catch(error => {});
+        const collections = await backend.moveObjectFromInventoryToBag(player.id, player.inventory.leger[currentPage].id, objectId);
+        setPlayer(collections.player);
+        setPageData(collections.page);
     };
 
     const bagButtons = player.bag.objects.map(bagObject => {
@@ -72,29 +69,21 @@ export default function Inventory() {
             mode: 'bag'
         };
         return <BagObjectButton bagObject={bagObject} key={bagObject.id} className={inventoryStyles['bag-item']}
-        onMoveClicked={() => {moveObjectToInventory(bagObject.id)}} onClick={() => { navigate('/panel/object-view', { state: urlObject }); }}/>;
+        onMoveClicked={async () => { await moveObjectToInventory(bagObject.id)}} onClick={() => { navigate('/panel/object-view', { state: urlObject }); }}/>;
     });
 
     for(let i=0; i < Math.max(player.bag.capacity - player.bag.objects.length); i++) {
         bagButtons.push(<BagObjectButton empty key={i} className={inventoryStyles['bag-item']}/>);
     }
 
-    const pageObjectButtons = pageData.objects.map(pageObject => {
-        const urlObject = {
-            object: pageObject,
-            mode: 'inventory',
-            pageId: pageData.id
-        };
-        return <InventoryObjectButton pageObject={pageObject} key={pageObject.id} onAddClicked={() => moveObjectToBag(pageObject.id)}
-        onClick={()=>{ navigate('/panel/object-view', { state: urlObject }); }}/>;
-    });
-
     const movePage = (value) => {
-        if (player.inventory.leger.length === 0) {
+        const nextPage = Math.min(player.inventory.leger.length - 1, Math.max(0, currentPage + value));
+
+        if (player.inventory.leger.length === 0 || nextPage === currentPage) {
             return;
         }
+
         setPageData({objects: []});
-        const nextPage = Math.min(player.inventory.leger.length - 1, Math.max(0, currentPage + value));
         navigate('/panel/inventory', {
             state: {page: nextPage},
             replace: true
@@ -118,18 +107,50 @@ export default function Inventory() {
                     <Button className={`${inventoryStyles['right-page-nav']} material-symbols-outlined`} onClick={() => {movePage(1)}}>arrow_forward</Button>
                 </div>
                 <div className={inventoryStyles['inventory-view']}>
-                    <div>Bag</div>
+                    <div className={inventoryStyles['bag-controls']}>
+                        Preview<Button className={inventoryStyles['bag-button']} onClick={() => { navigate('/panel/bag') }}>Open Bag</Button>
+                    </div>
                     <div className={inventoryStyles['bag-preview']}>
                         {bagButtons}
                     </div>
                     <div className={inventoryStyles['inventory-container']}>
-                        {pageDataRequest === 'pending' && <h1>Loading Page...</h1>}
+                        {pageDataRequest === 'pending' && (backend.cache.inventory[currentPageId] ? 
+                            <RenderInventory pageData={backend.cache.inventory[currentPageId]}/> : <LoadingScreen/>)}
                         {pageDataRequest === 'error' && <h1>Sorry, there was a problem loading the page</h1>}
-                        {pageDataRequest === 'complete' && pageObjectButtons}
+                        {pageDataRequest === 'complete' &&  <RenderInventory pageData={pageData} bagFull={bagFull} onAddClicked={moveObjectToBag}/>}
                     </div>
                 </div>
                 <div style={{height: '80px'}}/>
             </div>
         </>
     )
+}
+
+/**
+ * 
+ * @param {{
+ * pageData: Object[],
+ * bagFull: boolean,
+ * onAddClicked: (objectId: string) => Promise,
+ * }} attributes 
+ * @returns 
+ */
+function RenderInventory({pageData, bagFull=false, onAddClicked}) {
+    const navigate = useNavigate();
+
+    if (!pageData) {
+        return;
+    }
+
+    const pageObjectButtons = pageData.objects.map(pageObject => {
+        const urlObject = {
+            object: pageObject,
+            mode: 'inventory',
+            pageId: pageData.id
+        };
+        return <InventoryObjectButton disableAdd={bagFull} pageObject={pageObject} key={pageObject.id} onAddClicked={async () => {await onAddClicked(pageObject.id);}}
+        onClick={()=>{ navigate('/panel/object-view', { state: urlObject }); }}/>;
+    });
+
+    return <>{pageObjectButtons}</>;
 }

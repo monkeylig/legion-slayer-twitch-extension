@@ -1,5 +1,5 @@
 /**
- * @import {AddEffectStep, ApChangeStep, ProtectionStep, RemoveEffectStep} from "@/utilities/battle-step-types"
+ * @import {AddEffectStep, ApChangeStep, MaxApChangeStep, ProtectionStep, RemoveEffectStep} from "@/utilities/battle-step-types"
  * @import {BattleData, EffectData, AbilityData} from "@/utilities/backend-calls"
  * @import {BattleAgentData} from "@/utilities/backend-calls"
  */
@@ -21,9 +21,10 @@ import useNumberAnimation from "@/utilities/animation/useNumberAnimation";
 import { resolve } from "styled-jsx/css";
 import MeterBar from "@/components/meter-bar/meter-bar";
 import Icon from "@/components/icon/icon";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router";
 import RPGNumber from "@/utilities/rpg-number";
 import { PlayerActionType } from "@/utilities/game-types";
+import {RPGTag} from "@/components/tag/rpg-tag";
 
 export default function Battle() {
     const navigate = useNavigate();
@@ -70,11 +71,14 @@ export default function Battle() {
     const healthAnimationCommand = (healthChange, player, protectionChange, type) => {
         if(protectionChange) {
             player.protection[type] += protectionChange;
-            updateBattleState();
         }
+
         if(healthChange) {
+            player.health += healthChange;
+        }
+        
+        if (protectionChange || healthChange) {
             return new Promise((resolve, reject) => {
-                player.health += healthChange;
                 updateBattleState();
                 onHealthAnimationEnd.current = resolve;
             });
@@ -190,6 +194,13 @@ export default function Battle() {
                     updateBattleState();
                     break;
                 }
+                case 'maxApChange': {
+                    const apMaxChangeStep = /**@type {MaxApChangeStep}*/(step);
+                    const target = getPlayerById(apMaxChangeStep.targetId);
+                    if (!target) {break;}
+                    target.maxAp += apMaxChangeStep.netChange;
+                    updateBattleState();
+                }
                 case 'addEffect': {
                     const addEffectStep = /**@type {AddEffectStep}*/(step);
                     if (!addEffectStep.successful) {break;}
@@ -286,7 +297,6 @@ export default function Battle() {
                 setBattleUIEnabled(true);
             }
             else {
-                setControlMode('exit');
                 setOptionsEnabled(false);
             }
         })
@@ -526,6 +536,8 @@ function BattleControls({player, battleData, onStrikeClicked, onAbilityClicked})
             imbuedElements.push(imbueEffect.inputData.element);
         }
     }
+    const strikeAbilityReady = player.strikeLevel >= 2;
+    const strikeText = strikeAbilityReady ? player.weapon.strikeAbility.name : 'Strike';
 
     /**@type {(ability?: AbilityData) => string} */
     const generateGradient = (ability) => {
@@ -566,12 +578,14 @@ function BattleControls({player, battleData, onStrikeClicked, onAbilityClicked})
         return gradient;
     };
 
-    const strikeButtonStyle = {
-        backgroundImage: `url(${backend.getResourceURL(player.weapon.icon)}) ${imbuedElements.length ? `,${generateGradient()}` : ''}`,
-        backgroundColor: !imbuedElements.length ? 'var(--foreground-rgb)' : ''
-    };
+    const strikeAbility = player.weapon.strikeAbility;
+    const hasStrikeElements = imbuedElements.length || strikeAbilityReady && strikeAbility.elements && strikeAbility.elements.length > 0;
 
-    console.log(strikeButtonStyle.backgroundImage);
+    const strikeButtonStyle = {
+        backgroundImage: `url(${backend.getResourceURL(player.weapon.icon)}) ${hasStrikeElements ? `,${strikeAbilityReady ? generateGradient(strikeAbility) : generateGradient()}` : ''}`,
+        backgroundColor: !imbuedElements.length ? 'var(--foreground-rgb)' : '',
+        border: player.strikeLevel === 1 ? "4px solid var(--orange)" : ''
+    };
 
     const abilityButtons = player.abilities.map((ability, index) => {
         const style = {
@@ -580,15 +594,20 @@ function BattleControls({player, battleData, onStrikeClicked, onAbilityClicked})
         if (index > 4) {
             style.border = "2px solid var(--foreground-rgb)";
         }
-        return <Button key={index} style={style} className={battleStyle['battle-btn']} onClick={()=>{onAbilityClicked?.(ability)}}>{ability.name}</Button>;
+        const tagStyle = {
+            background: player.ap >= ability.apCost ? colors.blue : colors.red
+        };
+        return (
+        <Button key={index} style={style} className={battleStyle['battle-btn']} onClick={()=>{onAbilityClicked?.(ability)}}>
+            {ability.apCost && <RPGTag style={tagStyle}>{ability.apCost}</RPGTag>}
+            {ability.name}
+        </Button>);
     });
-    const strikeText = player.strikeLevel == 2 ? player.weapon.strikeAbility.name : 'Strike';
+
     return (
-        <div className={battleStyle['battle-controls']}>
             <div className={battleStyle['battle-controls-frame']}>
                 <Button style={strikeButtonStyle} className={`${battleStyle['battle-btn']} ${battleStyle['strike-btn']}`} onClick={onStrikeClicked}>{strikeText}</Button>
                 {abilityButtons}
-            </div>
         </div>
     )
 }
@@ -610,7 +629,7 @@ function MessageControls({children}) {
 }
 
 function TypeWriter({onEnd, children}) {
-    const text = useTypeWriterAnimation(children, 15, onEnd);
+    const text = useTypeWriterAnimation(children, 30, onEnd);
     return (
         <div className={battleStyle['type-writer']}>
             {text}
@@ -631,9 +650,7 @@ function ItemControls({items, onItemClicked}) {
     const itemButtons = items.map(item => {
         return (
                 <div key={item.id} style={{position: 'relative'}}>
-                    <div className={battleStyle['item-count-area']}>
-                        <span className={battleStyle['item-count']}>{item.content.count}</span>
-                    </div>
+                    <RPGTag>{item.content.count}</RPGTag>
                     <div className={battleStyle['battle-item-content']} onClick={()=>{onItemClicked?.(item)}}>
                         <Icon style={{flexShrink: '0'}} src={item.content.icon}/>
                         <span style={{display: 'flex'}}>{item.content.name}</span>
@@ -710,7 +727,7 @@ function VictoryDialog({id, oldExp, oldExpToNextLevel, newExp, newExpToNextLevel
             <span style={{fontSize: '1.25em'}}>Level {level}</span>
             <span>+{expGain} exp</span>
             <MeterBar style={{width: '100%', maxWidth: '205px'}} progress={exp/expToNextLevel} barColor={colors.blue}/>
-            <span style={{fontSize: '1.25em'}}>Monster Drops</span>
+            {dropsList.length > 0 && <span style={{fontSize: '1.25em'}}>Monster Drops</span>}
             {dropsList}
         </BattleDialog>
     );
@@ -734,7 +751,7 @@ function DrawDialog({id, onExitClicked}) {
 
 function BattleDialog({id, open, headerColor, headerText, children, onExitClicked}) {
     return (
-        <Dialog open={open} id={id}>
+        <Dialog open={open} id={id} onClose={onExitClicked}>
             <div style={{background: headerColor}} className={battleStyle['dialog-header']}>{headerText}</div>
             <div className={battleStyle['dialog-content']}>
                 {children}
@@ -765,22 +782,64 @@ function NoHPHelp() {
  * @returns 
  */
 function HealthBar({health, maxHealth, physicalProtection=0, magicalProtection=0, onHealthAnimationEnd}) {
+    const [targetMagicalProtection, setTargetMagicalProtection] = useState(magicalProtection);
+    const [targetPhysicalProtection, setTargetPhysicalProtection] = useState(physicalProtection);
+    const [targetHealth, setTargetHealth] = useState(health);
+
+    const oldMagicalProtection = useRef(magicalProtection);
+    const oldPhysicalProtection = useRef(physicalProtection);
     const oldHealth = useRef(health);
+    const animSequence = useRef([]);
 
     const onHealthAnimEnd = useCallback(() => {
+        oldMagicalProtection.current = magicalProtection;
+        oldPhysicalProtection.current = physicalProtection;
         oldHealth.current = health;
         onHealthAnimationEnd?.();
-    }, [health, onHealthAnimationEnd]);
+    }, [health, magicalProtection, physicalProtection, onHealthAnimationEnd]);
 
-    const currentHealth = useNumberAnimation(oldHealth.current, health, 500, onHealthAnimEnd);
+    useEffect(() => {
+        if (health !== oldHealth.current) {
+            animSequence.current.push(() => setTargetHealth(health));
+        }
+    }, [health]);
+
+    useEffect(() => {
+        if (physicalProtection !== oldPhysicalProtection.current) {
+            animSequence.current.push(() => setTargetPhysicalProtection(physicalProtection));
+        }
+    }, [physicalProtection]);
+
+    useEffect(() => {
+        if (magicalProtection !== oldMagicalProtection.current) {
+            animSequence.current.push(() => setTargetMagicalProtection(magicalProtection));
+        }
+    }, [magicalProtection]);
+
+    const triggerNextAnim = useCallback(() => {
+        if (animSequence.current.length > 0) {
+            animSequence.current.pop()();
+        }
+        else {
+            onHealthAnimEnd();
+        }
+    }, [animSequence, health, physicalProtection, magicalProtection, onHealthAnimEnd]);
+
+    useEffect(() => {
+        triggerNextAnim();
+    }, [triggerNextAnim]);
+
+    const currentMagicalProtection = useNumberAnimation(oldMagicalProtection.current, targetMagicalProtection, 500, triggerNextAnim);
+    const currentPhysicalProtection = useNumberAnimation(oldPhysicalProtection.current, targetPhysicalProtection, 500, triggerNextAnim);
+    const currentHealth = useNumberAnimation(oldHealth.current, targetHealth, 500, triggerNextAnim);
 
     const protectionText = [];
-    if(magicalProtection > 0) {
-        protectionText.push(<span style={{color: colors.teal}} key='mProtec'>{RPGNumber(magicalProtection)}</span>);
+    if(currentMagicalProtection > 0) {
+        protectionText.push(<span style={{color: colors.teal}} key='mProtec'>{RPGNumber(currentMagicalProtection/maxHealth * 100)}%</span>);
     }
 
-    if(physicalProtection > 0) {
-        protectionText.push(<span style={{color: colors.orange}} key='pProtec'>{RPGNumber(physicalProtection)}</span>);
+    if(currentPhysicalProtection > 0) {
+        protectionText.push(<span style={{color: colors.orange}} key='pProtec'>{RPGNumber(currentPhysicalProtection/maxHealth * 100)}%</span>);
     }
     const healthBottom = <div style={{display: 'flex', gap: '10px'}}>{protectionText}</div>
 
