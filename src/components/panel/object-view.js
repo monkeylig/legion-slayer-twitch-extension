@@ -248,7 +248,7 @@ function InventoryControls({object, pageId, onMove, onObjectUpdate}) {
     return (
         <>
             <AsyncButton disabled={bagFull} className={objectViewStyle['action-btn']} onClick={onClick}>{buttonText}</AsyncButton>
-            {(object.type && object.type === 'item') && <AsyncButton style={{background: colors.blue}} className={objectViewStyle['action-btn']} onClick={useItem}>
+            {(object.type && object.type === 'item' && buttonEnabled) && <AsyncButton style={{background: colors.blue}} className={objectViewStyle['action-btn']} onClick={useItem}>
                 Use
             </AsyncButton>}
             <ItemUsedDialog battleSteps={battleSteps} id='itemUsedFromInventoryDialog'></ItemUsedDialog>
