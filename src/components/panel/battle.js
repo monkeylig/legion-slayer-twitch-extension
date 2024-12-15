@@ -801,7 +801,7 @@ function HealthBar({agentId, health, maxHealth, physicalProtection=0, magicalPro
         oldPhysicalProtection.current = physicalProtection;
         oldHealth.current = health;
         onHealthAnimationEnd?.(agentId);
-    }, [health, magicalProtection, physicalProtection, onHealthAnimationEnd]);
+    }, [health, agentId,magicalProtection, physicalProtection, onHealthAnimationEnd]);
 
     useEffect(() => {
         if (health !== oldHealth.current) {
