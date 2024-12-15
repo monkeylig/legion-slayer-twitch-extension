@@ -12,6 +12,7 @@ import frontendContext from '@/utilities/frontend-context'
 import AbilityView from '@/components/stat-sheet/ability-view'
 import { useNavigate } from "react-router"
 import RPGNumber from '../../utilities/rpg-number'
+import { calcAgentGrowthStats, getReferencedAbilities } from '@/utilities/game-stats'
 
 export default function Profile() {
     const navigate = useNavigate();
@@ -24,9 +25,16 @@ export default function Profile() {
         mode: 'bag'
     };
 
-    const abilityRows = player.abilities.map((ability, index) => {
-        return <AbilityView ability={ability} key={index} showStatGrowth/>
-    });
+    const playerGrowth = calcAgentGrowthStats(player);
+
+    const abilityRows = []
+    for (const ability of player.abilities) {
+        abilityRows.push(<AbilityView ability={ability} key={ability.name} showStatGrowth/>);
+        for (const refAbility of getReferencedAbilities(ability)) {
+            abilityRows.push(<AbilityView ability={refAbility} key={refAbility.name}/>);
+        }
+    }
+
     const profileImagestyle = player.avatar === 'player_avatar6.webp' ? {top: "auto", bottom: "40px"} : {};
     return (
         <>
@@ -43,9 +51,9 @@ export default function Profile() {
                 <HeaderBarBack title='Profile' onBackClicked={() => { navigate(-1);}}/>
                 <div className={profileStyles['profile-view']}>
                     <div className={profileStyles['profile-avatar']}>
-                        <Image alt="player's avater" style={profileImagestyle} src={player.avatar} fill/>
+                        <Image alt="player's avatar" style={profileImagestyle} src={player.avatar} fill/>
                     </div>
-                    <div style={{fontSize: '1.5em'}}>{player.name}</div>
+                    <div style={{textAlign: 'center', fontSize: '1.5em'}}>{player.name}</div>
                     <div>Level {player.level}</div>
                     <div className={profileStyles['health-exp-container']}>
                         <div className={profileStyles['labeled-bar']}>
@@ -72,6 +80,8 @@ export default function Profile() {
                         <StatSheet.Row>Magic - {RPGNumber(player.magic)}</StatSheet.Row>
                         <StatSheet.Row lastRow>Defense - {RPGNumber(player.defense)}</StatSheet.Row>
                     </StatSheet.StatSheet>
+                    As you level up, your stats will change based on your weapon and abilities.
+                    <StatSheet.StatGrowthTable growthObject={playerGrowth} />
                     <StatSheet.StatSheet>
                         <StatSheet.Row>Sword Victories - {player.trackers.weaponKills.sword}</StatSheet.Row>
                         <StatSheet.Row>Staff Victories - {player.trackers.weaponKills.staff}</StatSheet.Row>

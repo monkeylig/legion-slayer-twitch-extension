@@ -15,6 +15,7 @@ import backend from '@/utilities/backend-calls';
 import { useState } from 'react';
 import ClaimObjectButton from '@/components/object-viewers/claim-object-button';
 import { useNavigate } from "react-router";
+import ObjectButton from '../object-viewers/object-button';
 
 export default function Bag() {
     const navigate = useNavigate();
@@ -25,8 +26,8 @@ export default function Bag() {
 
     const moveObject = (objectId) => {
         backend.moveObjectFromBagToInventory(player.id, objectId)
-        .then(player => {
-            setPlayer(player);
+        .then(update => {
+            setPlayer(update.player);
         })
         .catch(error => {});
     };
@@ -39,7 +40,17 @@ export default function Bag() {
         .catch(error => {});
     };
 
-    const bagButtons = player.bag.objects.map(bagObject => {
+    const weaponViewObject = {
+        object: {
+            type: 'weapon',
+            content: player.weapon
+        },
+        mode: 'bag'
+    };
+    const bagButtons = [<ObjectButton key={'equipped'} bagObject={{content: player.weapon}} tag="equipped" 
+        onClick={() => { navigate('/panel/object-view', { state: weaponViewObject }); }} />];
+
+    bagButtons.push(...player.bag.objects.map(bagObject => {
         const urlObject = {
             object: bagObject,
             mode: 'bag'
@@ -50,13 +61,11 @@ export default function Bag() {
         }
         return <BagObjectButton bagObject={bagObject} key={bagObject.id} onMoveClicked={() => {moveObject(bagObject.id);}}
         onClick={()=>{ navigate('/panel/object-view', { state: urlObject }); }}/>
-    });
+    }));
 
     for(let i=0; i < Math.max(0, player.bag.capacity - player.bag.objects.length); i++) {
         bagButtons.push(<BagObjectButton empty key={i}/>);
     }
-
-    console.log(bagButtons.length);
 
     const unclaimedButtons = player.lastDrops.objects.map(object => {
         const urlObject = {

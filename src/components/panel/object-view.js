@@ -131,8 +131,8 @@ function BagControls({object, inBag, onPlayerUpdate}) {
     const [battleSteps, setBattleSteps] = useState([]);
     const player = frontendContext.get().player;
     const onClick = async () => {
-        const newPlayer = await backend.moveObjectFromBagToInventory(player.id, object.id);
-        onPlayerUpdate?.(newPlayer);
+        const update = await backend.moveObjectFromBagToInventory(player.id, object.id);
+        onPlayerUpdate?.(update.player);
     };
     const equipWeapon = async () => {
         const playerData = await backend.equipWeapon(player.id, object.id);
@@ -270,6 +270,7 @@ function WeaponData({weapon}) {
             <StatSheet.Row lastRow>Speed - {weapon.speed}</StatSheet.Row>
         </StatSheet.StatSheet>
         <AbilityData ability={{...weapon.strikeAbility, speed: weapon.speed}} showStatGrowth={false}/>
+        Equipping this weapon will affect how your stats change when you level up.
         <StatSheet.StatGrowthTable growthObject={calcWeaponGrowthStats(weapon)}/>
     </>
     );
@@ -287,7 +288,7 @@ function BookData({book, inBag, bookId, onPlayerUpdate}) {
 }
 
 /**
- * 
+ * TODO: Make a comm version of this that will show referenced abilities
  * @param {{
  * ability: AbilityData
  * }} attributes 
@@ -316,6 +317,7 @@ function AbilityData({ability, requirement, inBag, abilityBookId, abilityIndex, 
         dialog.close();
     }
 
+    //TODO: refactor, use getReferencedAbilities() util function
     const referencedAbilities = [];
     if (ability.addAbility) {
         referencedAbilities.push(<AbilityView key={ability.addAbility.name} ability={ability.addAbility}/>);
@@ -411,7 +413,16 @@ function ShopBuyButton({productId, amount, children, onBuy}) {
 function ItemUsedDialog({id, battleSteps, open=false}) {
     const player = /**@type {AgentData}*/(frontendContext.get().player);
     
-    const stepElements = battleSteps.map((battleStep, index) => {
+    if (!battleSteps) {
+        return;
+    }
+
+    const stepElements = battleSteps.filter((step) => {
+        if (step.action === 'item') {
+            return false;
+        }
+        return true;
+    }).map((battleStep, index) => {
         if (battleStep.type === 'info') {
             return (
                 <div key={index} className={`${objectViewStyle['item-used-dialog-step']} checkered-list`}>

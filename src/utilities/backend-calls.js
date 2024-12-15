@@ -211,6 +211,11 @@ async function useItem(playerId, objectId, options) {
     return result;
 }
 
+async function resetAccount(playerId) {
+    const result = await backendCall(endpoint_url('reset_account', `playerId=${playerId}`), 'POST');
+    return result; 
+}
+
 const backend = {
     getResourceURL,
     getStartingAvatars,
@@ -235,6 +240,7 @@ const backend = {
     productPurchase,
     updateGame,
     useItem,
+    resetAccount,
     cache
 };
 

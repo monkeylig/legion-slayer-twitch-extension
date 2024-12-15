@@ -18,7 +18,7 @@ import dialogStyles from "./dialog.module.css"
  * }} attribute 
  * @returns 
  */
-export default function Dialog({open, enableExit, id=`${Math.random()}`, onClose, className='', style, children}) {
+export default function Dialog({open, enableExit, id=`${Math.random()}`, onClose=()=>{}, className='', style, children}) {
 
     const onClick = (e) => {
         if (e.currentTarget !== e.target){

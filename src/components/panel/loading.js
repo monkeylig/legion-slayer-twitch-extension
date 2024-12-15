@@ -8,11 +8,12 @@ import backend from '@/utilities/backend-calls'
 import Button from '@/components/button/button'
 import colors from '@/utilities/colors'
 import { useLocation, useNavigate } from "react-router"
+import LoadingScreen from '../loading/loading-screen'
 
 export default function Loading() {
     const navigate = useNavigate();
     const [accountStatus, setAccountStatus] = useState('loading');
-    const [viewerId, setViewerId] = useState();
+    const [viewerId, setViewerId] = useState(frontendContext.viewerId);
 
     const tryGoToGame = useCallback(() => {
         const context = frontendContext.get();
@@ -33,7 +34,7 @@ export default function Loading() {
                 return;
             }
 
-            if(viewerId === null) {
+            if(viewerId === null && !frontendContext.viewerId) {
                 setAccountStatus('anonymous');
                 window.Twitch.ext.actions.requestIdShare();
             }
@@ -68,11 +69,11 @@ export default function Loading() {
             </Head>
             <div className={pageStyles['page-container-h-center']}>
                 <HeaderBar title='Loading'/>
-                {accountStatus === 'loading' && <p>Finding Account</p>}
+                {accountStatus === 'loading' && <LoadingScreen/>}
                 {accountStatus === 'anonymous' && 
                     <div className={pageStyles['page-container-v-center']}>
                         <Button style={{background: colors.blue, marginTop: '10px'}} onClick={continueClick}>Play Anonymously</Button>
-                        <p>Progress may not be saved, maybe</p>
+                        <p>Progress may not be saved</p>
                     </div>}
             </div>
         </>

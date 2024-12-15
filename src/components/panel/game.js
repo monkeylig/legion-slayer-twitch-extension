@@ -7,6 +7,7 @@ import Head from 'next/head'
 import Image from "next/image";
 
 import HeaderBar from '@/components/header-bar/header-bar'
+import headerBarStyles from '@/components/header-bar/header-bar.module.css'
 import MonsterTile from '@/components/object-viewers/monster-tile';
 import Button from '@/components/button/button';
 
@@ -71,7 +72,9 @@ function GameRender({game}) {
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <div style={{gap: '15px'}} className={`${pageStyles['page-container-h-center']}`}>
-                <HeaderBar title={game.name}/>
+                <HeaderBar title={game.name}>
+                    <GameHeaderMenu/>
+                </HeaderBar>
                 <p style={{textAlign: 'center'}}>{game.description}</p>
                 <div className={`${pageStyles['horizonal-container']}`}>
                     {monsterTiles}
@@ -184,4 +187,21 @@ function MonsterDialog({monster, id, gameId}) {
             </div>
         </Dialog>
     );
+}
+
+function GameHeaderMenu({}) {
+    const player = frontendContext.get().player;
+    const navigate = useNavigate();
+    const onGameGuideClick = () => {
+        navigate('/panel/game-guide');
+    };
+    const onResetClick = async () => {
+        await backend.resetAccount(player.id);
+        navigate('/panel/loading');
+    }
+    return (
+        <div className={pageStyles['horizontal-container-right']}>
+            {player.name === "Twitch Reviewer 8634" && <AsyncButton onClick={onResetClick} className={`${headerBarStyles['header-bar-btn']} material-symbols-outlined`}>restart_alt</AsyncButton>}
+            <button onClick={onGameGuideClick} className={`${headerBarStyles['header-bar-btn']} material-symbols-outlined`}>developer_guide</button>
+        </div>);
 }

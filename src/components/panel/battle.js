@@ -69,7 +69,7 @@ export default function Battle() {
     }
 
     const healthAnimationCommand = (healthChange, player, protectionChange, type) => {
-        if(protectionChange) {
+        if(protectionChange && protectionChange !== 0) {
             player.protection[type] += protectionChange;
         }
 
@@ -80,7 +80,12 @@ export default function Battle() {
         if (protectionChange || healthChange) {
             return new Promise((resolve, reject) => {
                 updateBattleState();
-                onHealthAnimationEnd.current = resolve;
+                onHealthAnimationEnd.current = (id) => {
+                    console.log(id);
+                    if (player.id === id) {
+                        resolve();
+                    }
+                };
             });
         }
     }
@@ -401,7 +406,7 @@ function BattleAvatar({player, battleData, showAP, rightSide, effectAnimation, s
         <div className={battleStyle['battle-avatar']} style={{zIndex:zIndex}}>
 
             <div className={battleStyle['battle-avatar-base-layer']}>
-                <HealthBar health={player.health} maxHealth={player.maxHealth} physicalProtection={player.protection.physical}
+                <HealthBar agentId={player.id} health={player.health} maxHealth={player.maxHealth} physicalProtection={player.protection.physical}
                     magicalProtection={player.protection.magical} onHealthAnimationEnd={onHealthAnimationEnd}></HealthBar>
                 <div className={battleStyle['avatar-image-position']}>
                     <div className={battleStyle['avatar-image-float']}>
@@ -781,7 +786,7 @@ function NoHPHelp() {
  * }} param0 
  * @returns 
  */
-function HealthBar({health, maxHealth, physicalProtection=0, magicalProtection=0, onHealthAnimationEnd}) {
+function HealthBar({agentId, health, maxHealth, physicalProtection=0, magicalProtection=0, onHealthAnimationEnd}) {
     const [targetMagicalProtection, setTargetMagicalProtection] = useState(magicalProtection);
     const [targetPhysicalProtection, setTargetPhysicalProtection] = useState(physicalProtection);
     const [targetHealth, setTargetHealth] = useState(health);
@@ -795,7 +800,7 @@ function HealthBar({health, maxHealth, physicalProtection=0, magicalProtection=0
         oldMagicalProtection.current = magicalProtection;
         oldPhysicalProtection.current = physicalProtection;
         oldHealth.current = health;
-        onHealthAnimationEnd?.();
+        onHealthAnimationEnd?.(agentId);
     }, [health, magicalProtection, physicalProtection, onHealthAnimationEnd]);
 
     useEffect(() => {
@@ -823,7 +828,7 @@ function HealthBar({health, maxHealth, physicalProtection=0, magicalProtection=0
         else {
             onHealthAnimEnd();
         }
-    }, [animSequence, health, physicalProtection, magicalProtection, onHealthAnimEnd]);
+    }, [animSequence, onHealthAnimEnd]);
 
     useEffect(() => {
         triggerNextAnim();

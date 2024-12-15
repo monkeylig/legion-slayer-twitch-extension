@@ -111,7 +111,7 @@ const textStyleData = [
         style: DefineKeyword("Gain an extra ability to use in battle. See the ability described below.")
     },
     {
-        text: /[bB]ase damage/,
+        text: /[bB]ase [dD]amage/,
         style: DefineKeyword("An attack's destructive power. It is increased by your level and your strength or magic, but it is decreased by the target's defense.")
     },
     {

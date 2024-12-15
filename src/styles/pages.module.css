@@ -17,3 +17,12 @@
     flex-wrap: wrap;
     gap: 5px;
 }
+
+.horizontal-container-right {
+    display: flex;
+    height: 100%;
+    flex-direction: row;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 5px;
+}

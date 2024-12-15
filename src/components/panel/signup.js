@@ -13,13 +13,14 @@ import backend from '@/utilities/backend-calls'
 import Image from 'next/image'
 import frontendContext from '@/utilities/frontend-context'
 import { useNavigate } from "react-router"
+import LoadingScreen from '../loading/loading-screen'
 
 export default function SignUp() {
     const [data, isPending, error] = useAsync(backend.getGameInfo);
 
     return (        
         <div>
-            {isPending && <h1>Loading Signup Page</h1>}
+            {isPending && <LoadingScreen/>}
             {data && <SignUpRender gameInfo={data}/>}
             {error && <p>Sorry something went wrong. Try refreshing the page.</p>}
         </div>

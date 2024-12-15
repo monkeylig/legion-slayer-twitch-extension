@@ -37,7 +37,11 @@ export default function AbilityView({ability, showStatGrowth, children}) {
                 <StatSheet.Row><span>Elements - {elements}</span></StatSheet.Row>
                 <StatSheet.Row lastRow>Speed - {ability.speed}</StatSheet.Row>
             </StatSheet.StatSheet>
-            {showStatGrowth && <StatSheet.StatGrowthTable growthObject={calcAbilityGrowStats(ability)}/>}
+            {showStatGrowth && 
+                <>
+                    Equipping this ability will affect how your stats change when you level up.
+                    <StatSheet.StatGrowthTable growthObject={calcAbilityGrowStats(ability)}/>
+                </>}
         </>
     );
 }

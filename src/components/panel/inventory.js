@@ -14,6 +14,7 @@ import backend from '@/utilities/backend-calls'
 import useAsync from '@/utilities/useAsync'
 import { useLocation, useNavigate } from "react-router";
 import LoadingScreen from '@/components/loading/loading-screen';
+import ObjectButton from '../object-viewers/object-button'
 
 export default function Inventory() {
     const navigate = useNavigate();
@@ -62,15 +63,28 @@ export default function Inventory() {
         setPlayer(collections.player);
         setPageData(collections.page);
     };
+    
+    const weaponViewObject = {
+        object: {
+            type: 'weapon',
+            content: player.weapon
+        },
+        mode: 'bag'
+    };
+    const bagButtons = [<ObjectButton key={'equipped'} bagObject={{content: player.weapon}} tag="equipped" className={inventoryStyles['bag-item']} 
+        onClick={() => { navigate('/panel/object-view', { state: weaponViewObject }); }} />];
 
-    const bagButtons = player.bag.objects.map(bagObject => {
+    bagButtons.push(...player.bag.objects.map(bagObject => {
         const urlObject = {
             object: bagObject,
             mode: 'bag'
         };
+        const onClick = () => {
+            navigate('/panel/object-view', { state: urlObject });
+        };
         return <BagObjectButton bagObject={bagObject} key={bagObject.id} className={inventoryStyles['bag-item']}
-        onMoveClicked={async () => { await moveObjectToInventory(bagObject.id)}} onClick={() => { navigate('/panel/object-view', { state: urlObject }); }}/>;
-    });
+        onMoveClicked={async () => { await moveObjectToInventory(bagObject.id)}} onClick={onClick}/>;
+    }));
 
     for(let i=0; i < Math.max(player.bag.capacity - player.bag.objects.length); i++) {
         bagButtons.push(<BagObjectButton empty key={i} className={inventoryStyles['bag-item']}/>);
@@ -90,6 +104,7 @@ export default function Inventory() {
         });
     }
 
+    const pendingUi = backend.cache.inventory[currentPageId] ? <RenderInventory pageData={backend.cache.inventory[currentPageId]}/> : <LoadingScreen/>;
     return (
         <>
             <Head>
@@ -101,11 +116,6 @@ export default function Inventory() {
             <div className={`${pageStyles['page-container-h-center']}`}>
                 <HeaderBarBack title='Inventory' onBackClicked={ () => { navigate(-1); } }/>
                 {bagFull && <div className={inventoryStyles['bag-full-notification']}>Bag Full</div>}
-                <div className={inventoryStyles['page-nav']}>
-                    <Button className={`${inventoryStyles['left-page-nav']} material-symbols-outlined`} onClick={() => {movePage(-1)}}>arrow_back</Button>
-                    <div className={inventoryStyles['page-tracker']}>{player.inventory.leger.length > 0 ? currentPage + 1 : 0}/{player.inventory.leger.length}</div>
-                    <Button className={`${inventoryStyles['right-page-nav']} material-symbols-outlined`} onClick={() => {movePage(1)}}>arrow_forward</Button>
-                </div>
                 <div className={inventoryStyles['inventory-view']}>
                     <div className={inventoryStyles['bag-controls']}>
                         Preview<Button className={inventoryStyles['bag-button']} onClick={() => { navigate('/panel/bag') }}>Open Bag</Button>
@@ -114,16 +124,20 @@ export default function Inventory() {
                         {bagButtons}
                     </div>
                     <div className={inventoryStyles['inventory-container']}>
-                        {pageDataRequest === 'pending' && (backend.cache.inventory[currentPageId] ? 
-                            <RenderInventory pageData={backend.cache.inventory[currentPageId]}/> : <LoadingScreen/>)}
+                        {pageDataRequest === 'pending' && pendingUi}
                         {pageDataRequest === 'error' && <h1>Sorry, there was a problem loading the page</h1>}
                         {pageDataRequest === 'complete' &&  <RenderInventory pageData={pageData} bagFull={bagFull} onAddClicked={moveObjectToBag}/>}
                     </div>
                 </div>
+                <div className={inventoryStyles['page-nav']}>
+                    <Button className={`${inventoryStyles['left-page-nav']} material-symbols-outlined`} onClick={() => {movePage(-1)}}>arrow_back</Button>
+                    <div className={inventoryStyles['page-tracker']}>{player.inventory.leger.length > 0 ? currentPage + 1 : 0}/{player.inventory.leger.length}</div>
+                    <Button className={`${inventoryStyles['right-page-nav']} material-symbols-outlined`} onClick={() => {movePage(1)}}>arrow_forward</Button>
+                </div>
                 <div style={{height: '80px'}}/>
             </div>
         </>
-    )
+    );
 }
 
 /**

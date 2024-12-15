@@ -76,6 +76,17 @@ a {
   text-decoration: none;
 }
 
+.dialog-frame {
+    padding: 5px;
+    border: 2px solid var(--foreground-rgb);
+    border-radius: 10px;
+    width: calc(100vw - 100px);
+    min-width: 150px;
+    max-width: 400px;
+    text-align: center;
+    background: var(--background-deep-rgb);
+}
+
 dialog {
     position: fixed;
     left: 50%;

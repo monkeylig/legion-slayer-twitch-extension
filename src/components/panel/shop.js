@@ -16,6 +16,7 @@ import Icon from '@/components/icon/icon';
 import AsyncButton from '@/components/button/async-button';
 import Currency from '@/components/currency/currency';
 import { useNavigate } from "react-router";
+import LoadingScreen from '../loading/loading-screen';
 
 
 export default function Shop() {
@@ -59,7 +60,7 @@ export default function Shop() {
         });
     }
 
-    const pendingUI = backend.cache.shop ? <ShopRender shop={backend.cache.shop}/> : <h1>Loading daily shop</h1>;
+    const pendingUI = backend.cache.shop ? <ShopRender shop={backend.cache.shop}/> : <LoadingScreen/>;
 
     return (        
         <div>
@@ -158,7 +159,8 @@ function GetCoinsDialog({id, products, onPlayerUpdate}) {
                     onPlayerUpdate?.(player);
                     resolve();
                 })
-                .catch(() => {
+                .catch((error) => {
+                    console.log(error);
                     reject();
                 });
             });

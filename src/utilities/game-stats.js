@@ -1,5 +1,5 @@
 /**
- * @import {AbilityData, WeaponData} from "./backend-calls"
+ * @import {AbilityData, AgentData, WeaponData} from "./backend-calls"
  */
 
 /**
@@ -54,8 +54,29 @@ function calcAbilityGrowStats(ability, multiplier=1) {
     };
 
     if (ability.type) {
-        if (ability.baseDamage && ability.baseDamage >= 50) {
+        if (ability.baseDamage && ability.baseDamage >= 0) {
             growthObject[typeToStat(ability.type)] += multiplier;
+        }
+    }
+
+    if (hasAbilityStat(ability, 'strengthAmp') ||
+        hasAbilityStat(ability, 'magicAmp')) {
+        growthObject.defense += multiplier;
+        if (hasAbilityStat(ability, 'strengthAmp')) {
+            growthObject.strength += multiplier;
+        }
+        if (hasAbilityStat(ability, 'strengthAmp')) {
+            growthObject.magic += multiplier;
+        }
+    }
+
+    if (hasAbilityStat(ability, 'empowerment')) {
+        growthObject.maxHealth += multiplier;
+        if (ability.empowerment?.physical) {
+            growthObject.strength += multiplier;
+        }
+        if (ability.empowerment?.magical) {
+            growthObject.magic += multiplier;
         }
     }
 
@@ -94,4 +115,53 @@ function calcWeaponGrowthStats(weapon) {
     return calcAbilityGrowStats(weapon.strikeAbility);
 }
 
-export {calcAbilityGrowStats, calcWeaponGrowthStats};
+/**
+ * 
+ * @param {GrowthObject} growLeft 
+ * @param {GrowthObject} growRight 
+ */
+function addGrowthObject(growLeft, growRight) {
+    growLeft.defense += growRight.defense;
+    growLeft.magic += growRight.magic;
+    growLeft.maxHealth += growRight.maxHealth;
+    growLeft.strength += growRight.strength;
+}
+
+/**
+ * 
+ * @param {AgentData} agent 
+ * @returns {GrowthObject}
+ */
+function calcAgentGrowthStats(agent) {
+    const growthObject = calcWeaponGrowthStats(agent.weapon);
+
+    for (const ability of agent.abilities) {
+        const abilityGrowth = calcAbilityGrowStats(ability);
+        addGrowthObject(growthObject, abilityGrowth);
+    }
+
+    return growthObject;
+}
+
+/**
+ * 
+ * @param {AbilityData} abilityData 
+ * @returns {AbilityData[]}
+ */
+function getReferencedAbilities(abilityData) {
+    const referencedAbilities = [];
+    if (abilityData.addAbility) {
+        referencedAbilities.push(abilityData.addAbility);
+    }
+
+    if (abilityData.postActions) {
+        for (const action of abilityData.postActions) {
+            if (action.addAbility) {
+                referencedAbilities.push(abilityData.addAbility);
+            }
+        }
+    }
+    return referencedAbilities;
+}
+
+export {calcAbilityGrowStats, calcWeaponGrowthStats, calcAgentGrowthStats, getReferencedAbilities};

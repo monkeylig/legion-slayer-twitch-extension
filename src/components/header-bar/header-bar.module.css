@@ -18,14 +18,13 @@
     pointer-events: none;
 }
 
-.header-bar-back-btn {
+.header-bar-btn {
     border: 0;
-    width: 30px;
+    min-width: 40px;
     height: inherit;
-    color: var(--foreground-rgb);
     background: rgba(255, 255, 255, 0);
 }
 
-.header-bar-back-btn:active {
+.header-bar-btn:active {
     background: rgba(255, 255, 255, 0.25);
 }
