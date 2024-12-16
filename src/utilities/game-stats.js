@@ -65,7 +65,7 @@ function calcAbilityGrowStats(ability, multiplier=1) {
         if (hasAbilityStat(ability, 'strengthAmp')) {
             growthObject.strength += multiplier;
         }
-        if (hasAbilityStat(ability, 'strengthAmp')) {
+        if (hasAbilityStat(ability, 'magicAmp')) {
             growthObject.magic += multiplier;
         }
     }
