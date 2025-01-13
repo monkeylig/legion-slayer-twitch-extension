@@ -91,6 +91,10 @@ const textStyleData = [
         style: DefineKeyword("Lightning attacks deal 5 additional true damage to you. Water attacks dealing 15% of the target's max health in damage will drench their target.")
     },
     {
+        text: /[aA]lazed/,
+        style: DefineKeyword("Take 6 true damage every turn.")
+    },
+    {
         text: /[fF]rozen/,
         style: DefineKeyword("Your items and abilities have a 50% chance of failing. If you are drenched, you have a 50% chance of freezing.")
     },
@@ -116,6 +120,6 @@ const textStyleData = [
     },
     {
         text: /[sS]trikes?/,
-        style: DefineKeyword("The first option in the battle menu. It's free it use and gives you one AP so that you can use your abilities. Unfortunately, this attack is very weak.")
+        style: DefineKeyword("The first option in the battle menu. It's free to use and gives you one AP so that you can use your abilities. Unfortunately, this attack is very weak.")
     },
 ];

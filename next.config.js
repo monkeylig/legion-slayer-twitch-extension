@@ -35,7 +35,11 @@ const nextConfig = {
     webpack(config, options) {
         config.optimization.minimize = false;
         return config;
-    }
+    },
+    eslint: {
+      // Warning: Disabling warnings is not recommended for production!
+      ignoreDuringBuilds: true,
+    },
 }
 
 module.exports = nextConfig

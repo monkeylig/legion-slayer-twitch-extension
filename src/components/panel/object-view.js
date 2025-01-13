@@ -22,6 +22,7 @@ import { useLocation, useNavigate } from "react-router";
 import LabeledMeterBar from '../meter-bar/labeled-meter-bar';
 import RPGNumber from '@/utilities/rpg-number';
 import { calcWeaponGrowthStats } from '@/utilities/game-stats';
+import KeywordText from '../text/keyword-text';
 
 const MAX_ABILITIES = 5;
 
@@ -88,7 +89,7 @@ export default function ObjectView() {
                     onObjectUpdate={(newObject) => {setObject(newObject)}}/>}
             </div>
             <div className={objectViewStyle['item-data']}>
-                <span className={objectViewStyle['object-description']}>{object[container].description}</span>
+                <KeywordText className={objectViewStyle['object-description']}>{object[container].description}</KeywordText>
                 {object.type === 'weapon' && <WeaponData weapon={object[container]} />}
                 {object.type === 'book' && <BookData book={object[container]} bookId={object.id} inBag={inBag} onPlayerUpdate={updatePlayer}/>}
             </div>
