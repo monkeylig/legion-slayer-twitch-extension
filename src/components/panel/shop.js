@@ -141,7 +141,7 @@ function ShopRender({shop}) {
                 </div>
                 {shopSections}
             </div>
-            {true && <AsyncButton className={shopStyles['get-coins-btn']} onClick={onGetCoinsClick}>get coins</AsyncButton>}
+            {window.Twitch.ext.features.isBitsEnabled && <AsyncButton className={shopStyles['get-coins-btn']} onClick={onGetCoinsClick}>get coins</AsyncButton>}
             <div style={{height: '60px'}}/>
             <GetCoinsDialog id='get-coins' products={products} onPlayerUpdate={setPlayer}/>
         </>

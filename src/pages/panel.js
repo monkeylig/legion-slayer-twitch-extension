@@ -33,19 +33,19 @@ export default function Panel() {
                         element: <Game/>
                     },
                     {
-                        path: "panel/bag",
+                        path: "/panel/bag",
                         element: <Bag/>
                     },
                     {
-                        path: "panel/profile",
+                        path: "/panel/profile",
                         element: <Profile/>
                     },
                     {
-                        path: "panel/shop",
+                        path: "/panel/shop",
                         element: <Shop/>
                     },
                     {
-                        path: "panel/object-view",
+                        path: "/panel/object-view",
                         element: <ObjectView/>
                     },
                     {

@@ -7,6 +7,7 @@ import HeaderBarBack from '@/components/header-bar/header-bar-back';
 import Head from 'next/head'
 import Image from 'next/image';
 import objectViewStyle from '@/styles/object-view.module.css'
+import pageStyles from '@/styles/pages.module.css'
 import Button from '@/components/button/button';
 import TextBox from '@/components/text-box/text-box';
 import { useEffect, useMemo, useState } from 'react';
@@ -76,7 +77,7 @@ export default function ObjectView() {
             <div className={objectViewStyle['icon-display']}>
                 <Image sizes='318px' alt='object icon' style={{objectFit: 'contain', ...tiltStyle}} fill src={object[container].icon}/>
                 <div className={objectViewStyle['live-stats']}>
-                    {controlMode === 'shop' && <Currency>{player.coins}</Currency>}
+                    {controlMode === 'shop' && <Currency className={pageStyles['round-background']}>{player.coins}</Currency>}
                     {(numInBag != 0 && object.type === 'item') && <span>x{numInBag} in Bag</span>}
                     {(object[container].count && controlMode === 'inventory') && <span>x{object[container].count}</span>}
                 </div>

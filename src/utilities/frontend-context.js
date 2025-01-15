@@ -95,7 +95,6 @@ class FrontendContext {
         if (!this.hasTwitchContext()) {
             return '963595820';
         }
-
         return window.Twitch.ext.viewer.id;
     }
 };

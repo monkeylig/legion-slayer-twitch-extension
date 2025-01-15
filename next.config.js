@@ -19,7 +19,7 @@ const nextConfig = {
             destination: '/config',
           },
         ]
-      },
+    },
     images: {
         loader: 'custom',
         loaderFile: './src/utilities/imageLoader.js',

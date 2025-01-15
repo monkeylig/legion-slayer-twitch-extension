@@ -84,15 +84,15 @@ const textStyleData = [
     },
     {
         text: /[sS]urged/,
-        style: DefineKeyword("The next lightning ability that affects you will cause you to take 12 true damage. Lightning attacks have a 30% chance of surging their target.")
+        style: DefineKeyword("The next lightning ability that affects you will cause you to take 12% true damage. Lightning attacks have a 30% chance of surging their target.")
     },
     {
         text: /[dD]renched/,
-        style: DefineKeyword("Lightning attacks deal 5 additional true damage to you. Water attacks dealing 15% of the target's max health in damage will drench their target.")
+        style: DefineKeyword("Take 5% additional true damage from lightning attacks. Water attacks dealing 15% of the target's max health in damage will drench their target.")
     },
     {
-        text: /[aA]lazed/,
-        style: DefineKeyword("Take 6 true damage every turn.")
+        text: /[aA]blazed/,
+        style: DefineKeyword("Take 6% true damage every turn. Fire attacks have a 30% chance of ablazing their target.")
     },
     {
         text: /[fF]rozen/,
@@ -103,12 +103,16 @@ const textStyleData = [
         style: DefineKeyword("The stat that determines how fast your strike and strike ability moves are. Whichever player uses the fastest move will go first.")
     },
     {
-        text: /[cC]ounter/,
+        text: /[cC]ounters?/,
         style: DefineKeyword("The target's move is cancelled and does nothing.")
     },
     {
         text: /AP/,
         style: DefineKeyword("Ability Points. these allow you to use abilities. Abilities have an Ability Point cost, which must be paid to use an ability in battle.")
+    },
+    {
+        text: /[hH][pP]/,
+        style: DefineKeyword("Health Points. This is how much damage you can take before you are defeated.")
     },
     {
         text: /[gG]ain the abilit(?:y|ies) [\w\s]*/,
@@ -119,7 +123,23 @@ const textStyleData = [
         style: DefineKeyword("An attack's destructive power. It is increased by your level and your strength or magic, but it is decreased by the target's defense.")
     },
     {
+        text: /[sS]trike [aA]bility/,
+        style: DefineKeyword("Your weapon's special ability. Strike your target 2 times to ready this ability.")
+    },
+    {
         text: /[sS]trikes?/,
         style: DefineKeyword("The first option in the battle menu. It's free to use and gives you one AP so that you can use your abilities. Unfortunately, this attack is very weak.")
+    },
+    {
+        text: /[rR]ecoil [dD]amage/,
+        style: DefineKeyword("A percentage of the damage that you deal to your target will also be dealt to you.")
+    },
+    {
+        text: /[tT]rue [dD]amage/,
+        style: DefineKeyword("A percentage of your health dealt as damage. Increasing your health faster than normal will reduce how much damage you take.")
+    },
+    {
+        text: /[eE]lement [fF]usion/,
+        style: DefineKeyword("Attacks with more than one element bound them will deal 20% more damage. Look at the colors of your abilities to see how many elements are bound to them.")
     },
 ];

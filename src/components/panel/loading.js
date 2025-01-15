@@ -13,7 +13,7 @@ import LoadingScreen from '../loading/loading-screen'
 export default function Loading() {
     const navigate = useNavigate();
     const [accountStatus, setAccountStatus] = useState('loading');
-    const [viewerId, setViewerId] = useState(frontendContext.viewerId);
+    const [viewerId, setViewerId] = useState();
 
     const tryGoToGame = useCallback(() => {
         const context = frontendContext.get();
@@ -34,11 +34,10 @@ export default function Loading() {
                 return;
             }
 
-            if(viewerId === null && !frontendContext.viewerId) {
+            if(!frontendContext.viewerId) {
                 setAccountStatus('anonymous');
                 window.Twitch.ext.actions.requestIdShare();
             }
-
             else {
                 tryGoToGame();
             }

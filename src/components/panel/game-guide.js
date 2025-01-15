@@ -15,7 +15,7 @@ export default function GameGuide({}) {
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <link rel="icon" href="./favicon.webp" />
             </Head>
-            <div style={{gap: '15px'}} className={`${pageStyles['page-container-h-center']}`}>
+            <div style={{gap: '15px', paddingBottom: '20px'}} className={`${pageStyles['page-container-h-center']}`}>
                 <HeaderBarBack title='Game Guide' onBackClicked={ () => { navigate(-1); } }/>
                 <h2>Key Terms</h2>
                 <KeywordText>Imbue</KeywordText>
@@ -29,12 +29,17 @@ export default function GameGuide({}) {
                 <KeywordText>Water Resistance</KeywordText>
                 <KeywordText>Ice Resistance</KeywordText>
                 <KeywordText>Surged</KeywordText>
+                <KeywordText>Ablazed</KeywordText>
                 <KeywordText>Drenched</KeywordText>
                 <KeywordText>Frozen</KeywordText>
                 <KeywordText>Weapon speed</KeywordText>
                 <KeywordText>AP</KeywordText>
+                <KeywordText>HP</KeywordText>
                 <KeywordText>Base Damage</KeywordText>
                 <KeywordText>Strike</KeywordText>
+                <KeywordText>Strike Ability</KeywordText>
+                <KeywordText>Recoil Damage</KeywordText>
+                <KeywordText>Element Fusion</KeywordText>
             </div>
         </>
     );

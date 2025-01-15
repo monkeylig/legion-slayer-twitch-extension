@@ -28,11 +28,10 @@ export default function AbilityView({ability, showStatGrowth, children}) {
                 <span className={statSheetStyles['ability-title']}>{ability.name}</span>
                 <KeywordText style={{textAlign: 'center'}}>{ability.description}</KeywordText>
                 {children}
-            </div>
             <StatSheet.StatSheet>
                 <StatSheet.Row>Type - {ability.type}</StatSheet.Row>
                 <StatSheet.Row>Style - {ability.style}</StatSheet.Row>
-                {ability.apCost !== undefined && <StatSheet.Row>Ap Cost - {ability.apCost}</StatSheet.Row>}
+                {ability.apCost !== undefined && <StatSheet.Row>AP Cost - {ability.apCost}</StatSheet.Row>}
                 <StatSheet.Row>Base Damage - {`${ability.baseDamage ? ability.baseDamage : 0}${ability.baseDamageTextModifier ? ability.baseDamageTextModifier : ''}`}</StatSheet.Row>
                 <StatSheet.Row><span>Elements - {elements}</span></StatSheet.Row>
                 <StatSheet.Row lastRow>Speed - {ability.speed}</StatSheet.Row>
@@ -42,6 +41,7 @@ export default function AbilityView({ability, showStatGrowth, children}) {
                     Equipping this ability will affect how your stats change when you level up.
                     <StatSheet.StatGrowthTable growthObject={calcAbilityGrowStats(ability)}/>
                 </>}
+            </div>
         </>
     );
 }

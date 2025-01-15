@@ -157,7 +157,7 @@ function getReferencedAbilities(abilityData) {
     if (abilityData.postActions) {
         for (const action of abilityData.postActions) {
             if (action.addAbility) {
-                referencedAbilities.push(abilityData.addAbility);
+                referencedAbilities.push(action.addAbility);
             }
         }
     }
