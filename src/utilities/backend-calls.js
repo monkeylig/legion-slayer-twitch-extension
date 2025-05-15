@@ -146,6 +146,10 @@ function dropItem(playerId, itemName) {
     return backendCall(endpoint_url('drop_item', `playerId=${playerId}`, `itemName=${itemName}`), 'POST');
 }
 
+/**
+ * 
+ * @returns {Promise<ShopData>}
+ */
 async function getShop() {
     cache.shop = await backendCall(endpoint_url('get_shop', `shopId=daily`));
     return cache.shop;
@@ -216,6 +220,26 @@ async function resetAccount(playerId) {
     return result; 
 }
 
+/**
+ * 
+ * @param {string} playerId 
+ * @param {string} objectId 
+ * @param {string} shopId 
+ * @param {number} count 
+ * @param {{
+ * itemLocation?: {inventory?: {pageId: string}}
+ * }} [options] 
+ * @returns {Promise<{
+ * player: PlayerData,
+ * inventoryPage: InventoryPageData
+ * }>}
+ */
+async function sell(playerId, objectId, shopId, count, options) {
+    const result = await backendCall(endpoint_url('sell', `playerId=${playerId}`, `objectId=${objectId}`, `shopId=${shopId}`, `count=${count}`), 'POST', options);
+    frontendContext.setPlayer(result.player);
+    return result;
+}
+
 const backend = {
     getResourceURL,
     getStartingAvatars,
@@ -241,12 +265,48 @@ const backend = {
     updateGame,
     useItem,
     resetAccount,
+    sell,
     cache
 };
 
 export default backend;
+/**
+ * @typedef {Object} MapField
+ * @property {any} value
+ * @property {string} fieldName
+ * @property {string} [comparisonMethod]
+ * @property {KeyMapper} [nextMapper]
+ * 
+ * @typedef {Object} KeyMapper
+ * @property {MapField[]} mapFields
+ * 
+ * @typedef {Object} ObjectMapper
+ * @property {{key: KeyMapper, value: any}[]} keyFields
+ * @property {any} default
+ */
 
 /**
+ * Return the value that is mapped to the key object using the map
+ * @param {Object} key - The input object
+ * @param {ObjectMapper} map - The map to use to find the object's value
+ * @returns {any}
+ */
+
+/**
+ * @typedef {Object} ShopItemData
+ * @property {string} id
+ * @property {number} price
+ * @property {string} type
+ * @property {Object} product
+ * 
+ * @typedef {Object} ShopData
+ * @property {string} id 
+ * @property {string} title 
+ * @property {string} description 
+ * @property {string} coinIcon 
+ * @property {ShopItemData[]} products 
+ * @property {ObjectMapper} priceListing
+ * @property {ObjectMapper} resellListing
  * 
  * @typedef {Object} AgentActionData
  * @property {string} [type] - The action's type
@@ -324,6 +384,7 @@ export default backend;
  * @property {Object} content
  * 
  * @typedef {Object} InventoryPageData
+ * @property {string} id
  * @property {CollectionContainer[]} objects
  * 
  * @typedef {{

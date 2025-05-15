@@ -23,17 +23,29 @@
 
     .pending-button {
         background: var(--blue) !important;
-        pointer-events: none;
     }
 
     .done-button {
         background: var(--green) !important;
-        pointer-events: none;
     }
 
     .error-button {
         background: var(--red) !important;
-        pointer-events: none;
+    }
+
+    .pending-button:active {
+        background: var(--blue) !important;
+        box-shadow: none;
+    }
+
+    .done-button:active {
+        background: var(--green) !important;
+        box-shadow: none;
+    }
+
+    .error-button:active {
+        background: var(--red) !important;
+        box-shadow: none;
     }
 
     .disabled:active {

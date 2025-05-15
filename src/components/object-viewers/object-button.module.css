@@ -46,6 +46,13 @@
     border-radius: 5px;
 }
 
+.action-btn {
+    padding: 0px 8px;
+    height: 18px;
+    font-size: inherit;
+    border-radius: 5px;
+}
+
 .bag-claim-btn {
     background: var(--blue);
     padding: 0px 8px;

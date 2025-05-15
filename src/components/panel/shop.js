@@ -1,3 +1,7 @@
+/**
+ * @import {ShopData} from '@/utilities/backend-calls'
+ */
+
 import Head from 'next/head'
 import { useEffect, useState } from 'react';
 
@@ -22,44 +26,6 @@ import LoadingScreen from '../loading/loading-screen';
 export default function Shop() {
     const [data, isPending, error] = useAsync(backend.getShop);
 
-    const testShop = {
-        title: 'Shop',
-        description: 'A place to buy cool new things!',
-        coinIcon: 'coin.webp',
-        products: []
-    };
-
-    for(let i=0; i < 5; i++) {
-        testShop.products.push({
-            id: '',
-            price: 50,
-            type: 'weapon',
-            product: {
-                icon: 'gem_staff.webp'
-            }
-        });
-    }
-    for(let i=0; i < 5; i++) {
-        testShop.products.push({
-            id: '',
-            price: 50,
-            type: 'item',
-            product: {
-                icon: 'phoenix_down.webp'
-            }
-        });
-    }
-    for(let i=0; i < 5; i++) {
-        testShop.products.push({
-            id: '',
-            price: 50,
-            type: 'book',
-            product: {
-                icon: 'phoenix_down.webp'
-            }
-        });
-    }
-
     const pendingUI = backend.cache.shop ? <ShopRender shop={backend.cache.shop}/> : <LoadingScreen/>;
 
     return (        
@@ -71,6 +37,13 @@ export default function Shop() {
     );
 }
 
+/**
+ * 
+ * @param {{
+ * shop: ShopData
+ * }} params 
+ * @returns 
+ */
 function ShopRender({shop}) {
     const navigate = useNavigate();
     const [filterValue, setFilterValue] = useState('all');
@@ -119,6 +92,16 @@ function ShopRender({shop}) {
         );
     }
 
+    const sellNavData = {
+        state: {
+            page: 0,
+            action: {
+                sell: {
+                    shopId: shop.id
+                }
+            }
+        }
+    };
 
     return (
         <>
@@ -137,6 +120,7 @@ function ShopRender({shop}) {
                         <option value='item'>Items</option>
                         <option value='book'>Books</option>
                     </Select>
+                    <Button onClick={ () => {navigate('/panel/inventory', sellNavData)}} className={shopStyles['sell-btn']}>Sell</Button>
                     <Currency className={shopStyles['coin-balance']}>{player.coins}</Currency>
                 </div>
                 {shopSections}

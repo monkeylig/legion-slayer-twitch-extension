@@ -11,7 +11,7 @@ import buttonStyles from "./object-button.module.css"
  * disableAdd: boolean,
  * className: string,
  * onAddClicked: () => Promise,
- * onClick: () => Promise
+ * onClick: () => void
  * }} attributes 
  * @returns 
  */

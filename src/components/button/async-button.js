@@ -7,7 +7,8 @@ export default function AsyncButton({disabled, className='', style={}, onClick, 
     const [content, setContent] = useState(children);
 
     const asyncOnClick = (e) => {
-        if(!onClick) {
+        e.stopPropagation();
+        if(!onClick || inputDelayOn) {
             return;
         }
         setInputDelayOn(true);
@@ -22,6 +23,7 @@ export default function AsyncButton({disabled, className='', style={}, onClick, 
             setContent('done');
         })
         .catch((error) => {
+            console.log(error);
             setTimeout(() => {
                 setInputDelayOn(false);
                 setContent(children);

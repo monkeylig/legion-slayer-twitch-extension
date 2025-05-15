@@ -3,6 +3,19 @@ import buttonStyles from "./object-button.module.css"
 import battleStyle from "@/styles/battle.module.css"
 import { RPGTag } from "../tag/rpg-tag";
 
+/**
+ * 
+ * @param {{
+ * bagObject?: any,
+ * showCount?: boolean,
+ * tag?: any,
+ * empty?: boolean,
+ * className?: string,
+ * onClick?: any,
+ * children?: any
+ * }} param0 
+ * @returns 
+ */
 export default function ObjectButton({bagObject, showCount=true, tag, empty=false, className='', onClick, children}) {
     const preventDragHandler = (e) => {
         e.preventDefault();
