@@ -1,5 +1,16 @@
 import buttonStyle from './button.module.css'
 
+/**
+ * 
+ * @param {{
+ * className?: string,
+ * style?: object,
+ * disabled?: boolean,
+ * onClick?: () => void
+ * children?: any
+ * }} attributes 
+ * @returns 
+ */
 export default function Button({className='', style={}, disabled, onClick, children}) {
     return (
         <>

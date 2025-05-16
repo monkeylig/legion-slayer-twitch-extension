@@ -182,7 +182,9 @@ async function claimObject(playerId, objectId) {
 }
 
 async function getInventoryPage(playerId, pageId) {
-    return backendCall(endpoint_url('get_inventory_page', `playerId=${playerId}`, `pageId=${pageId}`));
+    const result = await backendCall(endpoint_url('get_inventory_page', `playerId=${playerId}`, `pageId=${pageId}`));
+    cache.inventory[result.id] = result;
+    return result;
 }
 
 async function productPurchase(playerId, productSku, transactionReceipt) {
@@ -225,18 +227,25 @@ async function resetAccount(playerId) {
  * @param {string} playerId 
  * @param {string} objectId 
  * @param {string} shopId 
- * @param {number} count 
  * @param {{
- * itemLocation?: {inventory?: {pageId: string}}
+ *     itemLocation?: {
+ *         inventory?: {
+ *             pageId: string
+ *         },
+ *     },
+ *     count?: number
  * }} [options] 
  * @returns {Promise<{
  * player: PlayerData,
  * inventoryPage: InventoryPageData
  * }>}
  */
-async function sell(playerId, objectId, shopId, count, options) {
-    const result = await backendCall(endpoint_url('sell', `playerId=${playerId}`, `objectId=${objectId}`, `shopId=${shopId}`, `count=${count}`), 'POST', options);
+async function sell(playerId, objectId, shopId, options) {
+    const result = await backendCall(endpoint_url('sell', `playerId=${playerId}`, `objectId=${objectId}`, `shopId=${shopId}`), 'POST', options);
     frontendContext.setPlayer(result.player);
+    if (result.inventoryPage) {
+        cache.inventory[result.inventoryPage.id] = result.inventoryPage;
+    }
     return result;
 }
 

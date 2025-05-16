@@ -7,11 +7,11 @@ import buttonStyles from "./object-button.module.css"
 /**
  * 
  * @param {{
- * pageObject: Object,
- * disableAdd: boolean,
- * className: string,
- * onAddClicked: () => Promise,
- * onClick: () => void
+ * pageObject?: Object,
+ * disableAdd?: boolean,
+ * className?: string,
+ * onAddClicked?: () => Promise,
+ * onClick?: () => void
  * }} attributes 
  * @returns 
  */

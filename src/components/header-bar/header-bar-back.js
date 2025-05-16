@@ -3,6 +3,15 @@ import HeaderBar from "./header-bar";
 import headerStyle from './header-bar.module.css'
 import pageStyles from '@/styles/pages.module.css'
 
+/**
+ * 
+ * @param {{
+ * title?: string,
+ * className?: string,
+ * onBackClicked?: () => void
+ * }} attributes 
+ * @returns 
+ */
 export default function HeaderBarBack({title, className, onBackClicked}) {
     return (
         <HeaderBar title={title} className={className}>

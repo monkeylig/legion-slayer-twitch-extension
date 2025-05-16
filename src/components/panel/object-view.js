@@ -40,11 +40,9 @@ export default function ObjectView() {
             name: ''
         },
     });
-    let container = 'content';
 
-    if(controlMode === 'shop') {
-        container = 'product';
-    }
+    const [storageLocation, setStorageLocation] = useState(location.state.mode);
+    let container = 'content';
 
     const inBag = player.bag.objects.find(bagObject => {
         return bagObject.id === object.id;
@@ -84,7 +82,7 @@ export default function ObjectView() {
             </div>
             <div className={objectViewStyle['page-controls']}>
                 {controlMode === 'shop' && <ShopControls object={object} onBuy={(player) => setPlayer(player)}/>}
-                {controlMode === 'bag' && <BagControls inBag={inBag} object={object} onPlayerUpdate={updatePlayer}/>}
+                {controlMode === 'bag' && <BagControls storageLocation={storageLocation} inBag={inBag} object={object} onPlayerUpdate={updatePlayer}/>}
                 {controlMode === 'claim' && <ClaimControls object={object} onPlayerUpdate={updatePlayer}/>}
                 {controlMode === 'inventory' && <InventoryControls object={object} pageId={location.state.pageId} onMove={onMoveToBag}
                     onObjectUpdate={(newObject) => {setObject(newObject)}}/>}
@@ -160,6 +158,11 @@ function BagControls({object, inBag, onPlayerUpdate}) {
     else if(!inBag) {
         moveText = 'in inventory';
     }
+
+    const controlButtons = [];
+
+
+
     return (
         <>
             {object.type === 'weapon' &&
