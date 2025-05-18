@@ -27,6 +27,10 @@
     flex-shrink: 0;
 }
 
+.move-item-action {
+    background: var(--orange);
+}
+
 .sell-item-action {
     background: var(--gold);
 }
@@ -60,9 +64,9 @@
 
 .currency-display {
     position: fixed;
-    border-radius: 5px;
-    background: rgb(var(--background-color));
-    padding: 2px;
+    background: rgba(0, 0, 0, 0.637);
+    border-radius: 10px;
+    padding: 5px;
     top: 5px;
     right: 5px;
     z-index: 5;

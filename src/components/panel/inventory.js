@@ -28,7 +28,7 @@ export default function Inventory() {
 
     const currentPage = location.state.page ? location.state.page : 0;
     const leger = player.inventory.leger;
-    const currentPageId = leger[currentPage] ? leger[currentPage].id : '';
+    const currentPageId = leger[currentPage] ? leger[currentPage].id : null;
 
     const [pageData, setPageData] = useState(() => {
         if (backend.cache.inventory[currentPageId]) {
@@ -43,11 +43,16 @@ export default function Inventory() {
         return 'pending';
     });
 
-    const action = location.state.action ? location.state.action : '';
+    const action = location.state.action ? location.state.action : {};
     const bagFull = player.bag.objects.length >= player.bag.capacity;
     const playerId = player.id;
 
     useEffect(() => {
+        if (!currentPageId) {
+            setPageDataRequest('complete');
+            return;
+        }
+
         if (backend.cache.inventory[currentPageId])
         {
             setPageDataRequest('complete');
@@ -100,7 +105,7 @@ export default function Inventory() {
     const sell = async (objectId, options) => {
         const result = await backend.sell(player.id, objectId, action.sell.shopId, options);
         setPlayer(result.player);
-        if (result.inventoryPage && result.inventoryPage === currentPageId) {
+        if (result.inventoryPage && result.inventoryPage.id === currentPageId) {
             setPageData(result.inventoryPage);
         }
 
@@ -129,7 +134,7 @@ export default function Inventory() {
             type: 'weapon',
             content: player.weapon
         },
-        mode: 'bag'
+        mode: 'equipped'
     };
     const bagButtons = [<ObjectButton key={'equipped'} bagObject={{content: player.weapon}} tag="equipped" className={inventoryStyles['bag-item']} 
         onClick={() => { navigate('/panel/object-view', { state: weaponViewObject }); }} />];
@@ -137,7 +142,8 @@ export default function Inventory() {
     bagButtons.push(...player.bag.objects.map(bagObject => {
         const urlObject = {
             object: bagObject,
-            mode: 'bag'
+            mode: 'bag',
+            action: action
         };
         const onClick = () => {
             navigate('/panel/object-view', { state: urlObject });
@@ -147,7 +153,7 @@ export default function Inventory() {
             actionButtonClassName={inventoryStyles['sell-item-action']} onActionClick={async () => { await sell(bagObject.id)}} onClick={onClick}/>;
         }
         return <AsyncActionObjectButton rpgObject={bagObject} actionName='move' key={bagObject.id} className={inventoryStyles['bag-item']}
-        onActionClick={async () => { await moveObjectToInventory(bagObject.id)}} onClick={onClick}/>;
+        actionButtonClassName={inventoryStyles['move-item-action']} onActionClick={async () => { await moveObjectToInventory(bagObject.id)}} onClick={onClick}/>;
     }));
 
     for(let i=0; i < Math.max(player.bag.capacity - player.bag.objects.length); i++) {
@@ -169,7 +175,7 @@ export default function Inventory() {
                 {action.sell && <div className={inventoryStyles['currency-display']}><Currency>{player.coins}</Currency></div>}
                 <div className={inventoryStyles['inventory-view']}>
                     <div className={inventoryStyles['bag-controls']}>
-                        Bag<Button className={inventoryStyles['bag-button']} onClick={() => { navigate('/panel/bag') }}>Open</Button>
+                        Bag{!action.sell && <Button className={inventoryStyles['bag-button']} onClick={() => { navigate('/panel/bag') }}>Open</Button>}
                     </div>
                     <div className={inventoryStyles['bag-preview']}>
                         {bagButtons}
@@ -222,7 +228,8 @@ function RenderInventory({pageData, bagFull=false, action={}, controls}) {
         const urlObject = {
             object: pageObject,
             mode: 'inventory',
-            pageId: pageData.id
+            pageId: pageData.id,
+            action: action
         };
         const nav = () => {navigate('/panel/object-view', { state: urlObject })};
 

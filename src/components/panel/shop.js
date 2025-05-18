@@ -1,5 +1,6 @@
 /**
  * @import {ShopData} from '@/utilities/backend-calls'
+ * @import {ObjectMapper} from '@/utilities/object-mapping' 
  */
 
 import Head from 'next/head'
@@ -22,6 +23,15 @@ import Currency from '@/components/currency/currency';
 import { useNavigate } from "react-router";
 import LoadingScreen from '../loading/loading-screen';
 
+/**
+ * @typedef {Object} NavAction
+ * @property {SellNavAction} [sell]
+ * 
+ * @typedef {Object} SellNavAction
+ * @property {string} shopId
+ * @property {ObjectMapper} resellListing
+ * 
+ */
 
 export default function Shop() {
     const [data, isPending, error] = useAsync(backend.getShop);
@@ -96,8 +106,10 @@ function ShopRender({shop}) {
         state: {
             page: 0,
             action: {
+                /**@type {SellNavAction} */
                 sell: {
-                    shopId: shop.id
+                    shopId: shop.id,
+                    resellListing: shop.resellListing
                 }
             }
         }

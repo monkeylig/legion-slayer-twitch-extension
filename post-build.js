@@ -38,10 +38,6 @@ async function walk(dir) {
     files = await Promise.all(files.map(async file => {
         const filePath = path.join(dir, file);
 
-        if (file.startsWith('polyfills')) {
-            return await removeFile(filePath);
-        }
-
         const stats = await fs.promises.stat(filePath);
         if (stats.isDirectory()) return walk(filePath);
         else if (stats.isFile()) return filePath;

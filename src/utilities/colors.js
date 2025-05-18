@@ -24,6 +24,7 @@ const colors = {
     green: '#2FD622',
     orange: '#D6A022',
     grey: '#939292',
+    gold: '#D7D023',
     getElementalColor
 };
 
