@@ -115,6 +115,12 @@ async function battleAction(battleId, actionRequest) {
     return battleUpdate;
 }
 
+/**
+ * 
+ * @param {string} playerId 
+ * @param {string} weaponId 
+ * @returns {Promise<PlayerData>}
+ */
 async function equipWeapon(playerId, weaponId) {
     const player = await backendCall(endpoint_url('equip_weapon', `playerId=${playerId}`, `weaponId=${weaponId}`), 'POST');
     frontendContext.setPlayer(player);
@@ -146,17 +152,41 @@ function dropItem(playerId, itemName) {
     return backendCall(endpoint_url('drop_item', `playerId=${playerId}`, `itemName=${itemName}`), 'POST');
 }
 
+/**
+ * 
+ * @returns {Promise<ShopData>}
+ */
 async function getShop() {
     cache.shop = await backendCall(endpoint_url('get_shop', `shopId=daily`));
     return cache.shop;
 }
 
+/**
+ * 
+ * @param {string} playerId 
+ * @param {string} shopId 
+ * @param {string} productId 
+ * @param {number} amount 
+ * @returns {PlayerData}
+ */
 async function buy(playerId, shopId, productId, amount=1) {
-    const player = await backendCall(endpoint_url('buy', `playerId=${playerId}`, `shopId=${shopId}`, `productId=${productId}`, `amount=${amount}`), 'POST');
-    frontendContext.setPlayer(player);
-    return player;
+    const result = await backendCall(endpoint_url('buy', `playerId=${playerId}`, `shopId=${shopId}`, `productId=${productId}`, `amount=${amount}`), 'POST');
+    frontendContext.setPlayer(result);
+
+    //TODO: Change the backend to return the changed inventory page
+    cache.inventory = {};
+    return result;
 }
 
+/**
+ * 
+ * @param {string} playerId 
+ * @param {string} objectId 
+ * @returns {Promise<{
+ *     player: PlayerData,
+ *     page: InventoryPageData
+ * }>}
+ */
 async function moveObjectFromBagToInventory(playerId, objectId) {
     const collections = await backendCall(endpoint_url('move_object_from_bag_to_inventory', `playerId=${playerId}`, `objectId=${objectId}`), 'POST');
     cache.inventory[collections.page.id] = collections.page;
@@ -164,6 +194,17 @@ async function moveObjectFromBagToInventory(playerId, objectId) {
     return collections;
 }
 
+/**
+ * 
+ * @param {string} playerId 
+ * @param {string} pageId 
+ * @param {string} objectId 
+ * @returns {Promise<{
+ *     player: PlayerData,
+ *     page: InventoryPageData,
+ *     objectInBag: CollectionContainer
+ * }>}
+ */
 async function moveObjectFromInventoryToBag(playerId, pageId, objectId) {
     const collections = await backendCall(endpoint_url('move_object_from_inventory_to_bag', `playerId=${playerId}`, `pageId=${pageId}`, `objectId=${objectId}`), 'POST');
     cache.inventory[collections.page.id] = collections.page;
@@ -178,7 +219,9 @@ async function claimObject(playerId, objectId) {
 }
 
 async function getInventoryPage(playerId, pageId) {
-    return backendCall(endpoint_url('get_inventory_page', `playerId=${playerId}`, `pageId=${pageId}`));
+    const result = await backendCall(endpoint_url('get_inventory_page', `playerId=${playerId}`, `pageId=${pageId}`));
+    cache.inventory[result.id] = result;
+    return result;
 }
 
 async function productPurchase(playerId, productSku, transactionReceipt) {
@@ -202,6 +245,7 @@ async function updateGame(gameId, mode) {
  * @returns {Promise<{
  * player: AgentData,
  * steps: BattleStep,
+ * usedItem: ItemData,
  * inventoryPage?: InventoryPageData
  * }>}
  */
@@ -214,6 +258,34 @@ async function useItem(playerId, objectId, options) {
 async function resetAccount(playerId) {
     const result = await backendCall(endpoint_url('reset_account', `playerId=${playerId}`), 'POST');
     return result; 
+}
+
+/**
+ * @typedef {Object} SellOptions
+ * @property {{
+ *     inventory?: {
+ *         pageId: string
+ *     }
+ * }} [itemLocation]
+ * @property {number} [count]
+ * 
+ * @param {string} playerId 
+ * @param {string} objectId 
+ * @param {string} shopId 
+ * @param {SellOptions} [options] 
+ * @returns {Promise<{
+ * player: PlayerData,
+ * inventoryPage: InventoryPageData,
+ * soldObject: Object
+ * }>}
+ */
+async function sell(playerId, objectId, shopId, options) {
+    const result = await backendCall(endpoint_url('sell', `playerId=${playerId}`, `objectId=${objectId}`, `shopId=${shopId}`), 'POST', options);
+    frontendContext.setPlayer(result.player);
+    if (result.inventoryPage) {
+        cache.inventory[result.inventoryPage.id] = result.inventoryPage;
+    }
+    return result;
 }
 
 const backend = {
@@ -241,12 +313,48 @@ const backend = {
     updateGame,
     useItem,
     resetAccount,
+    sell,
     cache
 };
 
 export default backend;
+/**
+ * @typedef {Object} MapField
+ * @property {any} value
+ * @property {string} fieldName
+ * @property {string} [comparisonMethod]
+ * @property {KeyMapper} [nextMapper]
+ * 
+ * @typedef {Object} KeyMapper
+ * @property {MapField[]} mapFields
+ * 
+ * @typedef {Object} ObjectMapper
+ * @property {{key: KeyMapper, value: any}[]} keyFields
+ * @property {any} default
+ */
 
 /**
+ * Return the value that is mapped to the key object using the map
+ * @param {Object} key - The input object
+ * @param {ObjectMapper} map - The map to use to find the object's value
+ * @returns {any}
+ */
+
+/**
+ * @typedef {Object} ShopItemData
+ * @property {string} id
+ * @property {number} price
+ * @property {string} type
+ * @property {Object} product
+ * 
+ * @typedef {Object} ShopData
+ * @property {string} id 
+ * @property {string} title 
+ * @property {string} description 
+ * @property {string} coinIcon 
+ * @property {ShopItemData[]} products 
+ * @property {ObjectMapper} priceListing
+ * @property {ObjectMapper} resellListing
  * 
  * @typedef {Object} AgentActionData
  * @property {string} [type] - The action's type
@@ -324,6 +432,7 @@ export default backend;
  * @property {Object} content
  * 
  * @typedef {Object} InventoryPageData
+ * @property {string} id
  * @property {CollectionContainer[]} objects
  * 
  * @typedef {{

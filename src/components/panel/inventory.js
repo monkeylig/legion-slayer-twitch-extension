@@ -1,58 +1,82 @@
+// @ts-check
+
+/**
+ * @import {PlayerData, InventoryPageData} from '@/utilities/backend-calls'
+ */
+
 import Head from 'next/head'
 
 import HeaderBarBack from '@/components/header-bar/header-bar-back'
 import Button from '@/components/button/button'
-import Select from '@/components/select/select'
 
 import pageStyles from '@/styles/pages.module.css'
 import inventoryStyles from '@/styles/inventory.module.css'
-import BagObjectButton from '@/components/object-viewers/bag-object-button'
 import InventoryObjectButton from '@/components/object-viewers/inventory-object-button'
 import { useCallback, useEffect, useState } from 'react'
 import frontendContext from '@/utilities/frontend-context'
 import backend from '@/utilities/backend-calls'
-import useAsync from '@/utilities/useAsync'
 import { useLocation, useNavigate } from "react-router";
 import LoadingScreen from '@/components/loading/loading-screen';
 import ObjectButton from '../object-viewers/object-button'
+import { AsyncActionObjectButton } from '../object-viewers/action-object-button'
+import Currency from '../currency/currency'
 
 export default function Inventory() {
     const navigate = useNavigate();
-    const [player, setPlayer] = useState(frontendContext.get().player);
     const location = useLocation();
-    const [pageData, setPageData] = useState({objects: []});
-    const [pageDataRequest, setPageDataRequest] = useState('pending');
+    const [player, setPlayer] = useState(frontendContext.get().player);
 
     const currentPage = location.state.page ? location.state.page : 0;
     const leger = player.inventory.leger;
-    const currentPageId = leger[currentPage] ? leger[currentPage].id : '';
+    const currentPageId = leger[currentPage] ? leger[currentPage].id : null;
+
+    const [pageData, setPageData] = useState(() => {
+        if (backend.cache.inventory[currentPageId]) {
+            return backend.cache.inventory[currentPageId];
+        }
+        return {objects: [], id: ''};
+    });
+    const [pageDataRequest, setPageDataRequest] = useState(() => {
+        if (backend.cache.inventory[currentPageId]) {
+            return 'complete';
+        }
+        return 'pending';
+    });
+
+    const action = location.state.action ? location.state.action : {};
     const bagFull = player.bag.objects.length >= player.bag.capacity;
     const playerId = player.id;
-    
-    const refreshPage = useCallback(() => {
-        setPageDataRequest('pending');
-        if (!leger[currentPage]) {
+
+    useEffect(() => {
+        if (!currentPageId) {
             setPageDataRequest('complete');
             return;
         }
-        backend.getInventoryPage(playerId, leger[currentPage].id)
-        .then(page => {
-            setPageDataRequest('complete');
-            setPageData(page);
-        })
-        .catch(error => {
-            setPageDataRequest('error');
-        });
-    }, [currentPage, leger, playerId]);
 
-    useEffect(() => {
-        refreshPage();
-    }, [currentPage, player.inventory.leger.length, refreshPage]);
+        if (backend.cache.inventory[currentPageId])
+        {
+            setPageDataRequest('complete');
+            setPageData(backend.cache.inventory[currentPageId]);
+        }
+        else {
+            setPageDataRequest('pending');
+            backend.getInventoryPage(playerId, currentPageId)
+            .then(page => {
+                setPageDataRequest('complete');
+                setPageData(page);
+            })
+            .catch(error => {
+                setPageDataRequest('error');
+            });
+        }
+    }, [playerId, currentPageId]);
 
     const moveObjectToInventory = async (objectId) => {
         const collections = await backend.moveObjectFromBagToInventory(player.id, objectId);
         setPlayer(collections.player);
-        setPageData(collections.page);
+        if (collections.page.id === currentPageId) {
+            setPageData(collections.page);
+        }
     };
 
     const moveObjectToBag = async (objectId) => {
@@ -61,7 +85,48 @@ export default function Inventory() {
         }
         const collections = await backend.moveObjectFromInventoryToBag(player.id, player.inventory.leger[currentPage].id, objectId);
         setPlayer(collections.player);
-        setPageData(collections.page);
+        if (collections.page.id === currentPageId) {
+            setPageData(collections.page);
+        }
+    };
+
+    /**
+     * 
+     * @param {string} objectId 
+     * @param {{
+     *     itemLocation?: {
+     *         inventory?: {
+     *             pageId: string
+     *         },
+     *     },
+     *     count?: number
+     * }} [options] 
+     */
+    const sell = async (objectId, options) => {
+        const result = await backend.sell(player.id, objectId, action.sell.shopId, options);
+        setPlayer(result.player);
+        if (result.inventoryPage && result.inventoryPage.id === currentPageId) {
+            setPageData(result.inventoryPage);
+        }
+
+    }
+
+    const movePage = (value) => {
+        const nextPage = Math.min(player.inventory.leger.length - 1, Math.max(0, currentPage + value));
+
+        if (nextPage < 0 || nextPage === currentPage) {
+            return;
+        }
+
+        navigate('/panel/inventory', {
+            state: {page: nextPage, action: action},
+            replace: true
+        });
+    }
+
+    const inventoryControls = {
+        sell,
+        moveObjectToBag
     };
     
     const weaponViewObject = {
@@ -69,7 +134,7 @@ export default function Inventory() {
             type: 'weapon',
             content: player.weapon
         },
-        mode: 'bag'
+        mode: 'equipped'
     };
     const bagButtons = [<ObjectButton key={'equipped'} bagObject={{content: player.weapon}} tag="equipped" className={inventoryStyles['bag-item']} 
         onClick={() => { navigate('/panel/object-view', { state: weaponViewObject }); }} />];
@@ -77,34 +142,25 @@ export default function Inventory() {
     bagButtons.push(...player.bag.objects.map(bagObject => {
         const urlObject = {
             object: bagObject,
-            mode: 'bag'
+            mode: 'bag',
+            action: action
         };
         const onClick = () => {
             navigate('/panel/object-view', { state: urlObject });
         };
-        return <BagObjectButton bagObject={bagObject} key={bagObject.id} className={inventoryStyles['bag-item']}
-        onMoveClicked={async () => { await moveObjectToInventory(bagObject.id)}} onClick={onClick}/>;
+        if (action.sell) {
+            return <AsyncActionObjectButton rpgObject={bagObject} actionName='sell' key={bagObject.id} className={inventoryStyles['sell-item']}
+            actionButtonClassName={inventoryStyles['sell-item-action']} onActionClick={async () => { await sell(bagObject.id)}} onClick={onClick}/>;
+        }
+        return <AsyncActionObjectButton rpgObject={bagObject} actionName='move' key={bagObject.id} className={inventoryStyles['bag-item']}
+        actionButtonClassName={inventoryStyles['move-item-action']} onActionClick={async () => { await moveObjectToInventory(bagObject.id)}} onClick={onClick}/>;
     }));
 
     for(let i=0; i < Math.max(player.bag.capacity - player.bag.objects.length); i++) {
-        bagButtons.push(<BagObjectButton empty key={i} className={inventoryStyles['bag-item']}/>);
+        bagButtons.push(<AsyncActionObjectButton empty key={i} className={inventoryStyles['bag-item']}/>);
     }
 
-    const movePage = (value) => {
-        const nextPage = Math.min(player.inventory.leger.length - 1, Math.max(0, currentPage + value));
-
-        if (player.inventory.leger.length === 0 || nextPage === currentPage) {
-            return;
-        }
-
-        setPageData({objects: []});
-        navigate('/panel/inventory', {
-            state: {page: nextPage},
-            replace: true
-        });
-    }
-
-    const pendingUi = backend.cache.inventory[currentPageId] ? <RenderInventory pageData={backend.cache.inventory[currentPageId]}/> : <LoadingScreen/>;
+    const pendingUi = backend.cache.inventory[currentPageId] ? <RenderInventory pageData={backend.cache.inventory[currentPageId]} action={action}/> : <LoadingScreen/>;
     return (
         <>
             <Head>
@@ -115,10 +171,11 @@ export default function Inventory() {
             </Head>
             <div className={`${pageStyles['page-container-h-center']}`}>
                 <HeaderBarBack title='Inventory' onBackClicked={ () => { navigate(-1); } }/>
-                {bagFull && <div className={inventoryStyles['bag-full-notification']}>Bag Full</div>}
+                {bagFull && !action.sell && <div className={inventoryStyles['bag-full-notification']}>Bag Full</div>}
+                {action.sell && <div className={inventoryStyles['currency-display']}><Currency>{player.coins}</Currency></div>}
                 <div className={inventoryStyles['inventory-view']}>
                     <div className={inventoryStyles['bag-controls']}>
-                        Preview<Button className={inventoryStyles['bag-button']} onClick={() => { navigate('/panel/bag') }}>Open Bag</Button>
+                        Bag{!action.sell && <Button className={inventoryStyles['bag-button']} onClick={() => { navigate('/panel/bag') }}>Open</Button>}
                     </div>
                     <div className={inventoryStyles['bag-preview']}>
                         {bagButtons}
@@ -126,7 +183,7 @@ export default function Inventory() {
                     <div className={inventoryStyles['inventory-container']}>
                         {pageDataRequest === 'pending' && pendingUi}
                         {pageDataRequest === 'error' && <h1>Sorry, there was a problem loading the page</h1>}
-                        {pageDataRequest === 'complete' &&  <RenderInventory pageData={pageData} bagFull={bagFull} onAddClicked={moveObjectToBag}/>}
+                        {pageDataRequest === 'complete' &&  <RenderInventory pageData={pageData} bagFull={bagFull} action={action} controls={inventoryControls} />}
                     </div>
                 </div>
                 <div className={inventoryStyles['page-nav']}>
@@ -143,27 +200,52 @@ export default function Inventory() {
 /**
  * 
  * @param {{
- * pageData: Object[],
- * bagFull: boolean,
- * onAddClicked: (objectId: string) => Promise,
+ * pageData?: InventoryPageData,
+ * bagFull?: boolean,
+ * action?: Object,
+ * controls?: {
+ * sell: (objectId: string, options?: {itemLocation?: {inventory?: {pageId: string}}}) => Promise,
+ * moveObjectToBag: (objectId: string) => Promise,
+ * }
  * }} attributes 
  * @returns 
  */
-function RenderInventory({pageData, bagFull=false, onAddClicked}) {
+function RenderInventory({pageData, bagFull=false, action={}, controls}) {
     const navigate = useNavigate();
 
     if (!pageData) {
         return;
     }
 
+    if (!controls) {
+        controls = {
+            sell: async () => {},
+            moveObjectToBag: async () => {}
+        };
+    }
+
     const pageObjectButtons = pageData.objects.map(pageObject => {
         const urlObject = {
             object: pageObject,
             mode: 'inventory',
-            pageId: pageData.id
+            pageId: pageData.id,
+            action: action
         };
-        return <InventoryObjectButton disableAdd={bagFull} pageObject={pageObject} key={pageObject.id} onAddClicked={async () => {await onAddClicked(pageObject.id);}}
-        onClick={()=>{ navigate('/panel/object-view', { state: urlObject }); }}/>;
+        const nav = () => {navigate('/panel/object-view', { state: urlObject })};
+
+        if (action.sell) {
+            const options = {
+                itemLocation: {
+                    inventory: {
+                        pageId: pageData.id
+                    }
+                }
+            };
+            return <AsyncActionObjectButton rpgObject={pageObject} actionName='sell' key={pageObject.id} className={inventoryStyles['sell-item']}
+            actionButtonClassName={inventoryStyles['sell-item-action']} onActionClick={async ()=> controls.sell(pageObject.id, options) } onClick={nav}/>;
+        }
+        return <InventoryObjectButton disableAdd={bagFull} pageObject={pageObject} key={pageObject.id} onAddClicked={async () => {await controls.moveObjectToBag(pageObject.id);}}
+        onClick={nav}/>;
     });
 
     return <>{pageObjectButtons}</>;

@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 
-
+/**
+ * @template {any} TReturnType
+ * 
+ * @param {() => Promise<TReturnType>} asyncFunction 
+ * @returns {[TReturnType|null, boolean, any]}
+ */
 function useAsync(asyncFunction) {
     const [data, setData] = useState(null);
     const [isPending, setIsPending] = useState(true);

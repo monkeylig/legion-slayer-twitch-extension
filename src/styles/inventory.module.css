@@ -23,6 +23,18 @@
     flex-shrink: 0;
 }
 
+.sell-item {
+    flex-shrink: 0;
+}
+
+.move-item-action {
+    background: var(--orange);
+}
+
+.sell-item-action {
+    background: var(--gold);
+}
+
 .bag-button {
     width: 125px;
     background: var(--blue);
@@ -43,6 +55,18 @@
     border-radius: 5px;
     background: var(--blue);
     padding: 0px 5px;
+    top: 5px;
+    right: 5px;
+    z-index: 5;
+    align-self: flex-end;
+    text-shadow: 1px 1px 1px #000;
+}
+
+.currency-display {
+    position: fixed;
+    background: rgba(0, 0, 0, 0.637);
+    border-radius: 10px;
+    padding: 5px;
     top: 5px;
     right: 5px;
     z-index: 5;

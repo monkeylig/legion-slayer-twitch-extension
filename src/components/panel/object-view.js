@@ -1,6 +1,8 @@
 /**
- * @import {BattleStep, HealStep, AgentData, ItemData, AbilityData, CollectionContainer} from "@/utilities/backend-calls"
+ * @import {BattleStep, HealStep, AgentData, ItemData, AbilityData, CollectionContainer, PlayerData, InventoryPageData, SellOptions} from "@/utilities/backend-calls"
  * @import {GrowthObject} from '@/utilities/game-stats'
+ * @import {NavAction, SellNavAction} from './shop'
+ * @import {ObjectMapper} from '@/utilities/object-mapping'
  */
 
 import HeaderBarBack from '@/components/header-bar/header-bar-back';
@@ -23,27 +25,57 @@ import { useLocation, useNavigate } from "react-router";
 import LabeledMeterBar from '../meter-bar/labeled-meter-bar';
 import RPGNumber from '@/utilities/rpg-number';
 import { calcWeaponGrowthStats } from '@/utilities/game-stats';
+import { getObjectMapValue } from '@/utilities/object-mapping';
 import KeywordText from '../text/keyword-text';
 
 const MAX_ABILITIES = 5;
 
+/**
+ * @typedef {Object} ObjectViewControls
+ * @property {(objectId: string) => Promise<{
+ *     player: PlayerData,
+ *     page: InventoryPageData
+ * }>} moveToInventory
+ * 
+ * @property {(pageId, objectId) => Promise<{
+ *     player: PlayerData,
+ *     page: InventoryPageData,
+ *     objectInBag: CollectionContainer
+ * }>} moveToBag
+ * 
+ * @property {(weaponId: string) => Promise<PlayerData>} equipWeapon
+ * 
+ * @property {(objectId: string, options: {itemLocation?: {type: string, source: {pageId?: string}}}) => Promise<{
+ *     player: AgentData,
+ *     steps: BattleStep,
+ *     inventoryPage?: InventoryPageData
+ * }>} useItem
+ * 
+ * @property {(options: SellOptions) => Promise<{
+ *     player: PlayerData,
+ *     inventoryPage: InventoryPageData,
+ *     soldObject: Object
+ * }>} sell
+ * 
+ */
+
 export default function ObjectView() {
     const navigate = useNavigate();
     const location = useLocation();
-    const [player, setPlayer] = useState(frontendContext.get().player);
+    const [player, setPlayer] = useState(/**@type {PlayerData}*/(frontendContext.get().player));
+    const [storageLocation, setStorageLocation] = useState(location.state.mode);
+
     const controlMode = location.state.mode;
-    const [object, setObject] = useState(location.state.object ? location.state.object : {
-        content: {
-            name: ''
-        },
-        product: {
-            name: ''
-        },
-    });
+    let controlAction = /**@type {NavAction}*/(location.state.action);
+    const object = location.state.object;
     let container = 'content';
 
-    if(controlMode === 'shop') {
+    if(object.product) {
         container = 'product';
+    }
+
+    if (!controlAction) {
+        controlAction = {};
     }
 
     const inBag = player.bag.objects.find(bagObject => {
@@ -61,10 +93,114 @@ export default function ObjectView() {
     const updatePlayer = (player) => {
         setPlayer(player);
     };
-    const onMoveToBag = (player) => {
-        setPlayer(player);
-    };
+
+    /**
+     * 
+     * @param {string} objectId
+     * @returns {Promise<{
+     *     player: PlayerData,
+     *     page: InventoryPageData
+     * }>} 
+     */
+    const moveToInventory = async (objectId) => {
+        const result = await backend.moveObjectFromBagToInventory(player.id, objectId);
+        setPlayer(result.player);
+        setStorageLocation('inventory');
+
+        return result;
+    } 
+
+    /**
+     * 
+     * @param {string} pageId 
+     * @param {string} objectId 
+     * @returns {Promise<
+     *     player: PlayerData,
+     *     page: InventoryPageData,
+     *     objectInBag: CollectionContainer
+     * >}
+     */
+    const moveToBag = async (pageId, objectId) => {
+        const result = await backend.moveObjectFromInventoryToBag(player.id, pageId, objectId);
+        setPlayer(result.player);
+        setStorageLocation('bag');
+
+        return result;
+    }
+
+    /**
+     * 
+     * @param {string} weaponId
+     * @returns {Promise<PlayerData>} 
+     */
+    const equipWeapon = async (weaponId) => {
+        const _player = await backend.equipWeapon(player.id, weaponId);        
+        setPlayer(_player);
+        setStorageLocation('equipped');
+
+        return _player;
+    }
+    /**
+     * 
+     * @param {string} objectId 
+     * @param {{itemLocation?: {type: string, source: {pageId?: string}}}} options
+     * @return {Promise<{
+     *     player: AgentData,
+     *     steps: BattleStep,
+     *     inventoryPage?: InventoryPageData
+     * }>} 
+     */
+    const useItem = async (objectId, options) => {
+        const result = await backend.useItem(player.id, objectId, options);        
+        setPlayer(result.player);
+        object.content = result.usedItem;
+        
+        return result;
+    }
+
+    /**
+     * 
+     * @param {SellOptions} [options] 
+     * @returns {Promise<{
+     * player: PlayerData,
+     * inventoryPage: InventoryPageData,
+     * soldObject: Object
+     * }>}
+     */
+    const sell = async (options) => {
+        if (!controlAction.sell) {
+            return;
+        }
+
+        if (controlMode === 'inventory' && location.state.pageId) {
+            options.itemLocation = {
+                inventory: {
+                    pageId: location.state.pageId
+                }
+            };
+        }
+        const sellAction = /**@type {SellNavAction}*/(controlAction.sell);
+        const result = await backend.sell(player.id, object.id, sellAction.shopId, options);
+        setPlayer(result.player);
+        object.content = result.soldObject;
+
+        if (!result.soldObject.count || result.soldObject.count == 0) {
+            setStorageLocation('sold');
+        }
+        
+        return result;
+    }
+
+    const controls = {
+        moveToInventory,
+        moveToBag,
+        equipWeapon,
+        useItem,
+        sell
+    }
+
     const tiltStyle = object.type === 'weapon' ? {rotate: '-45deg'} : {}
+    const showCoins = controlMode === 'shop' || controlAction.sell !== undefined;
     return (
         <>
             <Head>
@@ -77,17 +213,16 @@ export default function ObjectView() {
             <div className={objectViewStyle['icon-display']}>
                 <Image sizes='318px' alt='object icon' style={{objectFit: 'contain', ...tiltStyle}} fill src={object[container].icon}/>
                 <div className={objectViewStyle['live-stats']}>
-                    {controlMode === 'shop' && <Currency className={pageStyles['round-background']}>{player.coins}</Currency>}
-                    {(numInBag != 0 && object.type === 'item') && <span>x{numInBag} in Bag</span>}
-                    {(object[container].count && controlMode === 'inventory') && <span>x{object[container].count}</span>}
+                    {showCoins && <Currency className={pageStyles['round-background']}>{player.coins}</Currency>}
+                    {(object[container].count !== undefined) && <span>x{object[container].count}</span>}
                 </div>
             </div>
             <div className={objectViewStyle['page-controls']}>
                 {controlMode === 'shop' && <ShopControls object={object} onBuy={(player) => setPlayer(player)}/>}
-                {controlMode === 'bag' && <BagControls inBag={inBag} object={object} onPlayerUpdate={updatePlayer}/>}
+                {controlMode === 'bag' && <BagControls  object={object} storageLocation={storageLocation} action={controlAction} controls={controls}/>}
                 {controlMode === 'claim' && <ClaimControls object={object} onPlayerUpdate={updatePlayer}/>}
-                {controlMode === 'inventory' && <InventoryControls object={object} pageId={location.state.pageId} onMove={onMoveToBag}
-                    onObjectUpdate={(newObject) => {setObject(newObject)}}/>}
+                {controlMode === 'inventory' && <InventoryControls storageLocation={storageLocation} object={object} pageId={location.state.pageId} action={controlAction} controls={controls}/>}
+                {controlMode === 'equipped' && <Button disabled className={objectViewStyle['action-btn']}>Equipped</Button>}
             </div>
             <div className={objectViewStyle['item-data']}>
                 <KeywordText className={objectViewStyle['object-description']}>{object[container].description}</KeywordText>
@@ -109,13 +244,15 @@ function ShopControls({object, onBuy}) {
         else if(input < 1) {
             input = 1;
         }
+        
+        input = Math.floor(input);
         setAmount(input);
     };
     return (
         <>
             <Currency size={24}>{object.price * amount}</Currency>
             <ShopBuyButton productId={object.id} amount={amount} onBuy={onBuy}>Buy</ShopBuyButton>
-            {object.type === 'item' && <TextBox type='number' value={amount} min="1" max="100" label='amount' className={objectViewStyle['amount-input']} onInput={onChange}></TextBox>}
+            {object.type === 'item' && <TextBox type='number' value={amount} step="1" min="1" max="100" label='amount' className={objectViewStyle['amount-input']} onInput={onChange}></TextBox>}
         </>
     );
 }
@@ -124,57 +261,75 @@ function ShopControls({object, onBuy}) {
  * 
  * @param {{
  * object: CollectionContainer,
- * inBag: boolean,
- * onPlayerUpdate?: (player: *)=> void
+ * storageLocation: string,
+ * action?: NavAction,
+ * controls?: ObjectViewControls
  * }} param0 
  * @returns 
  */
-function BagControls({object, inBag, onPlayerUpdate}) {
+function BagControls({object, storageLocation, action, controls={}}) {
     const [battleSteps, setBattleSteps] = useState([]);
-    const player = frontendContext.get().player;
-    const onClick = async () => {
-        const update = await backend.moveObjectFromBagToInventory(player.id, object.id);
-        onPlayerUpdate?.(update.player);
+    const onMove = async () => {
+        await controls?.moveToInventory(object.id);
     };
-    const equipWeapon = async () => {
-        const playerData = await backend.equipWeapon(player.id, object.id);
-        if(onPlayerUpdate) {
-            onPlayerUpdate(playerData);
-        }
+    const onEquipWeapon = async () => {
+        await controls?.equipWeapon(object.id);
     };
 
     const useItem = async () => {
-        const result = await backend.useItem(player.id, object.id);
-        onPlayerUpdate?.(result.player);
+        const result = await controls?.useItem(object.id);
         setBattleSteps(result.steps);
 
         const dialog = document.getElementById(`itemUsedDialog`);
         dialog.showModal();
     };
 
-    const isEquipped = object.content.name === player.weapon.name;
-    let moveText;
-    if(inBag) {
-        moveText = 'move';
+    if (!action) {
+        action = {};
     }
-    else if(!inBag) {
-        moveText = 'in inventory';
+
+    const controlButtons = [];
+
+    if (action.sell) {
+        return <SellControls object={object} storageLocation={storageLocation} resellListing={action.sell.resellListing} controls={controls}/>;
     }
+    else {
+        if (object.type === 'weapon') {
+            if (storageLocation === 'bag' ||     storageLocation === 'equipped') {
+                let text = storageLocation === 'equipped' ? 'equipped' : 'equip';
+                let disabled = storageLocation === 'equipped';
+                controlButtons.push(
+                    <AsyncButton key='equipBtn' disabled={disabled} className={objectViewStyle['action-btn']} onClick={onEquipWeapon}>
+                        {text}
+                    </AsyncButton>);
+            }
+
+        }
+        
+        if (object.type === 'item' && storageLocation === 'bag') {
+            if (/**@type {ItemData}*/(object.content).outOfBattle) {
+                controlButtons.push(
+                    <AsyncButton key='useBtn' style={{background: colors.blue}} className={objectViewStyle['action-btn']} onClick={useItem}>
+                        Use
+                    </AsyncButton>
+                );
+            }
+        }
+
+        if (storageLocation === 'bag' || storageLocation === 'inventory') {
+            let text = storageLocation === 'bag' ? 'Move' : 'In inventory';
+            let disabled = storageLocation === 'inventory';
+            controlButtons.push(
+                <AsyncButton disabled={disabled} key='moveBtn' style={{background: colors.orange}} className={objectViewStyle['action-btn']} onClick={onMove}>
+                    {text}
+                </AsyncButton>);
+        }
+    }
+
+
     return (
         <>
-            {object.type === 'weapon' &&
-                <AsyncButton disabled={!inBag} className={objectViewStyle['action-btn']} onClick={equipWeapon}>
-                    {isEquipped ? 'equipped' : 'equip'}
-                </AsyncButton>}
-
-            {!isEquipped && <AsyncButton disabled={!inBag} style={{background: colors.orange}} className={objectViewStyle['action-btn']} onClick={onClick}>
-                {moveText}
-            </AsyncButton>}
-            {(object.type && object.type === 'item' && /**@type {ItemData}*/(object.content).outOfBattle) &&
-            <AsyncButton style={{background: colors.blue}} className={objectViewStyle['action-btn']} onClick={useItem}>
-                Use
-            </AsyncButton>}
-
+            {controlButtons}
             <ItemUsedDialog battleSteps={battleSteps} id='itemUsedDialog'></ItemUsedDialog>
         </>
     );
@@ -207,26 +362,19 @@ function ClaimControls({object, onPlayerUpdate}) {
  * @param {{
  * object: CollectionContainer,
  * pageId: string,
- * onMove?: (AgentData) => void,
- * onObjectUpdate?: (CollectionContainer) => void
+ * storageLocation: string,
+ * action: NavAction,
+ * controls: ObjectViewControls
  * }} param0 
  * @returns 
  */
-function InventoryControls({object, pageId, onMove, onObjectUpdate}) {
-    let [buttonEnabled, setButtonEnabled] = useState(true);
+function InventoryControls({object, pageId, storageLocation, action={}, controls}) {
     const [battleSteps, setBattleSteps] = useState([]);
-    const player = frontendContext.get().player;
 
     const bagFull = frontendContext.get().player.bag.objects.length >= frontendContext.get().player.bag.capacity;
-    let buttonText = bagFull ? 'bag full' : 'add to bag';
-    if(!buttonEnabled) {
-        buttonText = 'not in inventory';
-    }
 
-    const onClick = async () => {
-        const update = await backend.moveObjectFromInventoryToBag(frontendContext.get().player.id, pageId, object.id);
-        setButtonEnabled(false);
-        onMove?.(update.player);
+    const onAddToBag = async () => {
+        await controls?.moveToBag(pageId, object.id);
     };
     const useItem = async () => {
         const options = {
@@ -235,24 +383,46 @@ function InventoryControls({object, pageId, onMove, onObjectUpdate}) {
                 source: {pageId}
             }
         };
-        const result = (await backend.useItem(player.id, object.id, options));
-        if (result.inventoryPage) {
-            const newObject = result.inventoryPage.objects.find((value, index) => value.id === object.id);
-            if (newObject) {
-                onObjectUpdate?.(newObject);
-            }
-        }
+        const result = (await controls.useItem(object.id, options));
         setBattleSteps(result.steps);
 
         const dialog = document.getElementById(`itemUsedFromInventoryDialog`);
         dialog.showModal();
     };
+
+    if (action.sell) {
+        return <SellControls object={object} storageLocation={storageLocation} resellListing={action.sell.resellListing} controls={controls}/>;
+    }
+
+    const controlButtons = [];
+
+    let addText = 'Not in inventory';
+    let addButtonDisabled = false;
+
+    if (storageLocation === 'bag') {
+        addText = "In bag";
+        addButtonDisabled = true;
+    }
+
+    if (storageLocation === 'inventory') {
+        addText = bagFull ? 'Bag full' : 'Add to bag'
+        addButtonDisabled = bagFull;
+
+        if (object.type === 'item') {
+            controlButtons.push(
+                <AsyncButton key="useBtn" style={{background: colors.blue}} className={objectViewStyle['action-btn']} onClick={useItem}>
+                    Use
+                </AsyncButton>);
+        }
+    }
+
+    controlButtons.push(
+            <AsyncButton key="addBtn" disabled={addButtonDisabled} className={objectViewStyle['action-btn']} onClick={onAddToBag}>{addText}</AsyncButton>
+        );
+
     return (
         <>
-            <AsyncButton disabled={bagFull} className={objectViewStyle['action-btn']} onClick={onClick}>{buttonText}</AsyncButton>
-            {(object.type && object.type === 'item' && buttonEnabled) && <AsyncButton style={{background: colors.blue}} className={objectViewStyle['action-btn']} onClick={useItem}>
-                Use
-            </AsyncButton>}
+            {controlButtons}
             <ItemUsedDialog battleSteps={battleSteps} id='itemUsedFromInventoryDialog'></ItemUsedDialog>
         </>
     );
@@ -355,6 +525,63 @@ function AbilityData({ability, requirement, inBag, abilityBookId, abilityIndex, 
             </Dialog>
         </>
     );
+}
+
+/**
+ * 
+ * @param {{
+ * object?: Object,
+ * storageLocation?: string,
+ * resellListing?: ObjectMapper,
+ * controls?: ObjectViewControls
+ * }} attributes 
+ */
+function SellControls({object, storageLocation='bag', resellListing, controls}) {
+    const [amount, setAmount] = useState(1);
+
+    if (!object) {return;}
+    if (!resellListing) {return;}
+    
+    const onSell = async () => {
+        await controls?.sell({count: amount});
+        setAmount(1);
+    }
+
+    const onAmountChange = (e) => {
+        let input = e.target.value;
+        if(input > 100) {
+            input = 100;
+        }
+        else if(input < 1) {
+            input = 1;
+        }
+
+        input = Math.floor(input);
+        setAmount(input);
+    };
+
+    const controlButtons = [];
+    let text = storageLocation === 'sold' ? 'Sold' : 'Sell';
+    let disabled = storageLocation === 'sold';
+    const count = object.content.count;
+
+
+    controlButtons.push(
+        <Currency size={24}>{getObjectMapValue(object.content, resellListing) * amount}</Currency>);
+
+    controlButtons.push(
+        <AsyncButton key='sellBtn' style={{background: colors.gold}} className={objectViewStyle['action-btn']} disabled={disabled} onClick={onSell}>
+            {text}
+        </AsyncButton>
+    );
+
+    if (count !== undefined && count > 0) {
+        controlButtons.push(
+            <TextBox type='number' step="1" value={amount} min="1" max={count} label='amount' className={objectViewStyle['amount-input']} onInput={onAmountChange}></TextBox>
+        );
+    }
+
+    return <>{controlButtons}</>
 }
 
 function ShopBuyButton({productId, amount, children, onBuy}) {

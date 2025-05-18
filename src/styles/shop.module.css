@@ -6,6 +6,10 @@
     align-self: stretch;
 }
 
+.sell-btn {
+    background: var(--gold);
+}
+
 .coin-balance {
     text-align: center;
 }
@@ -35,7 +39,7 @@
     right: 10px;
     bottom: 10px;
     height: 50px;
-    background: var(--orange);
+    background: var(--gold);
 }
 
 .dialog-header {
