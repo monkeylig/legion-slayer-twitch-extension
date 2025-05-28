@@ -17,6 +17,7 @@ class FrontendContext {
     update(accountId, channelId, token) {
         this.#context.accountId = accountId;
         this.#context.channelId = channelId;
+        console.log(channelId)
         this.#context.token = token;
         //window.sessionStorage.setItem('accountId', accountId);
         //window.sessionStorage.setItem('channelId', channelId);

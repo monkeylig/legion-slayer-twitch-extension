@@ -137,7 +137,7 @@ function ShopRender({shop}) {
                 </div>
                 {shopSections}
             </div>
-            {window.Twitch.ext.features.isBitsEnabled && <AsyncButton className={shopStyles['get-coins-btn']} onClick={onGetCoinsClick}>get coins</AsyncButton>}
+            {(window.Twitch.ext.features.isBitsEnabled || frontendContext.get().channelId === '963595820') && <AsyncButton className={shopStyles['get-coins-btn']} onClick={onGetCoinsClick}>get coins</AsyncButton>}
             <div style={{height: '60px'}}/>
             <GetCoinsDialog id='get-coins' products={products} onPlayerUpdate={setPlayer}/>
         </>
@@ -156,8 +156,7 @@ function GetCoinsDialog({id, products, onPlayerUpdate}) {
                     resolve();
                 })
                 .catch((error) => {
-                    console.log(error);
-                    reject();
+                    reject(error);
                 });
             });
 
