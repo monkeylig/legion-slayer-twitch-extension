@@ -1,5 +1,7 @@
 import frontendContext from "./frontend-context";
 
+//For debug server
+//const backendURL = process.env.NODE_ENV === 'development' ? "https://development-dot-web-rpg-9000.uw.r.appspot.com/" : 'https://web-rpg-9000.uw.r.appspot.com/';
 const backendURL = process.env.NODE_ENV === 'development' ? "http://localhost:4000" : 'https://web-rpg-9000.uw.r.appspot.com/';
 const resourceBackendURL = 'https://storage.googleapis.com/web_rpg_resources/';
 

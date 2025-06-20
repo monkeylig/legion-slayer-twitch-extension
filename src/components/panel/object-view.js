@@ -28,8 +28,6 @@ import { calcWeaponGrowthStats } from '@/utilities/game-stats';
 import { getObjectMapValue } from '@/utilities/object-mapping';
 import KeywordText from '../text/keyword-text';
 
-const MAX_ABILITIES = 5;
-
 /**
  * @typedef {Object} ObjectViewControls
  * @property {(objectId: string) => Promise<{
@@ -473,7 +471,7 @@ function AbilityData({ability, requirement, inBag, abilityBookId, abilityIndex, 
 
     const getDialog = () => document.querySelector(`#ability-replace-dialog-${abilityIndex}`); 
     const equipAbility = async () => {
-        if(player.abilities.length >= MAX_ABILITIES) {
+        if(player.abilities.length >= player.maxAbilities) {
             const dialog = getDialog();
             dialog.showModal();
             return;
