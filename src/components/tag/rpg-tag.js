@@ -1,8 +1,11 @@
+/**
+ * @import {CSSProperties} from "react"
+ */
 import tagStyles from "./rpg-tag.module.css"
 
 /**
  * @param {{
- * Object: style
+ * style: CSSProperties
  * children: string
  * }} attributes 
  */

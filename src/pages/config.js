@@ -51,7 +51,7 @@ function ConfigRender({game}) {
                     <Select name='gameModeSelect' id='gameMode' defaultValue={game.mode}>
                         <option value='auto'>Auto</option>
                         <option value='arena'>Arena</option>
-                        <option value='battleRoyal'>Battle Royal</option>
+                        <option value='battleRoyale'>Battle Royale</option>
                     </Select>
                 </div>
                 <AsyncButton style={{background: 'var(--green)'}} onClick={onApply}>Apply</AsyncButton>

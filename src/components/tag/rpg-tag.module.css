@@ -15,4 +15,5 @@
     background: var(--blue);
     border-radius: 9px;
     padding: 1px 8px;
+    text-shadow: none;
 }

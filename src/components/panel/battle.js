@@ -2,6 +2,7 @@
  * @import {AddEffectStep, ApChangeStep, MaxApChangeStep, ProtectionStep, RemoveEffectStep} from "@/utilities/battle-step-types"
  * @import {BattleData, EffectData, AbilityData} from "@/utilities/backend-calls"
  * @import {BattleAgentData} from "@/utilities/backend-calls"
+ * @import {JSX, CSSProperties} from "react"
  */
 
 import Head from "next/head";
@@ -246,6 +247,11 @@ export default function Battle() {
         return battleUpdate;
     }
 
+    /**
+     * 
+     * @param {AbilityData} ability 
+     * @returns 
+     */
     const onAbilityClicked = (ability) => {
         if(ability.apCost > battleState.player.ap) {
             setBattleUIEnabled(false);
@@ -262,6 +268,21 @@ export default function Battle() {
         commitBattleAction({actionType: 'ability', abilityName: ability.name});
 
     };
+
+    const onStrikeAbilityClicked = () => {
+        if(getStrikeAbilityCost(battleState.player) > battleState.player.ap) {
+            setBattleUIEnabled(false);
+            typeWriterMessageCommand(`${battleState.player.name} does not have enough AP to use this ability.`)
+            .then(() => {
+                return waitCommand(500);
+            })
+            .then(() => {
+                setBattleUIEnabled(true);
+            });
+            return;
+        }
+        commitBattleAction({actionType: 'strikeAbility'});
+    }
 
     const onItemClicked = (item) => {
         commitBattleAction({actionType: 'item', itemId: item.id});
@@ -344,7 +365,8 @@ export default function Battle() {
                     </div>
                 </div>
                 <div className={battleStyle['controls']}>
-                    {controlMode === 'battle' && <BattleControls player={battleState.player} battleData={battleState} onAbilityClicked={onAbilityClicked} onStrikeClicked={() => {commitBattleAction({actionType: 'strike'})}}/>}
+                    {controlMode === 'battle' && <BattleControls player={battleState.player} battleData={battleState} onAbilityClicked={onAbilityClicked} onStrikeClicked={() => {commitBattleAction({actionType: 'strike'})}}
+                    onStrikeAbilityClicked={onStrikeAbilityClicked}/>}
                     {controlMode === 'items' && <ItemControls items={battleItems} onItemClicked={onItemClicked}/>}
                     {controlMode === 'waiting' && <MessageControls>Waiting...</MessageControls>}
                     {controlMode === 'error' && <MessageControls>Sorry, Something went wrong</MessageControls>}
@@ -526,11 +548,13 @@ function APTracker({apNumber, maxAp=3}) {
  * 
  * @param {{
  * player: BattleAgentData
- * battleData: BattleData
+ * battleData: BattleData,
+ * onStrikeClicked: ()=>{},
+ * onStrikeAbilityClicked: ()=>{},
+ * onAbilityClicked: (AbilityData)=>{},
  * }} attributes 
- * @returns 
  */
-function BattleControls({player, battleData, onStrikeClicked, onAbilityClicked}) {
+function BattleControls({player, battleData, onStrikeClicked, onStrikeAbilityClicked, onAbilityClicked}) {
     if (!player) {
         return;
     }
@@ -541,80 +565,100 @@ function BattleControls({player, battleData, onStrikeClicked, onAbilityClicked})
             imbuedElements.push(imbueEffect.inputData.element);
         }
     }
-    const strikeAbilityReady = player.strikeLevel >= 2;
-    const strikeText = strikeAbilityReady ? player.weapon.strikeAbility.name : 'Strike';
 
-    /**@type {(ability?: AbilityData) => string} */
-    const generateGradient = (ability) => {
-        let chosenElements = [];
-
-        if (ability) {
-            if (ability.style === player.weapon.style) {
-                chosenElements = [...imbuedElements];
-            }
-    
-            if (ability.elements) {
-                for (const element of ability.elements) {
-                    chosenElements.push(element);
-                }
-            }
-        }
-        else {
-            chosenElements = [...imbuedElements];
-        }
-
-        if (chosenElements.length === 0) {
-            chosenElements.push(null, null);
-        }
-
-        if (chosenElements.length === 1) {
-            chosenElements.push(chosenElements[0]);
-        }
-
-        let gradient = 'linear-gradient(-45deg';
-        
-        for (let i = 0; i < chosenElements.length; i++) {
-            gradient += ',';
-            const percentage = 100 / chosenElements.length;
-            gradient += `${colors.getElementalColor(chosenElements[i])} ${percentage * i}% ${percentage * (i+1)}%`;
-        }
-
-        gradient += ")"
-        return gradient;
-    };
-
-    const strikeAbility = player.weapon.strikeAbility;
-    const hasStrikeElements = imbuedElements.length || strikeAbilityReady && strikeAbility.elements && strikeAbility.elements.length > 0;
-
-    const strikeButtonStyle = {
-        backgroundImage: `url(${backend.getResourceURL(player.weapon.icon)}) ${hasStrikeElements ? `,${strikeAbilityReady ? generateGradient(strikeAbility) : generateGradient()}` : ''}`,
-        backgroundColor: !imbuedElements.length ? 'var(--foreground-rgb)' : '',
-        border: player.strikeLevel === 1 ? "4px solid var(--orange)" : ''
-    };
+    const imbuedColors = imbuedElements.map((element) => {
+        return colors.getElementalColor(element);
+    });
 
     const abilityButtons = player.abilities.map((ability, index) => {
-        const style = {
-            background: generateGradient(ability)
-        };
-        if (index > 4) {
-            style.border = "2px solid var(--foreground-rgb)";
+        let buttonColors = [...imbuedColors];
+        if (ability.elements) {
+            buttonColors.push(...ability.elements.map((element) => {
+                return colors.getElementalColor(element);
+            }));
         }
-        const tagStyle = {
-            background: player.ap >= ability.apCost ? colors.blue : colors.red
-        };
+
+        const tagColor = player.ap >= ability.apCost ? colors.blue : colors.red;
+
         return (
-        <Button key={index} style={style} className={battleStyle['battle-btn']} onClick={()=>{onAbilityClicked?.(ability)}}>
-            {ability.apCost && <RPGTag style={tagStyle}>{ability.apCost}</RPGTag>}
-            {ability.name}
-        </Button>);
+            <BattleButton buttonColors={buttonColors} tag={ability.apCost} tagColor={tagColor} onClick={() => {onAbilityClicked(ability)}}>
+                {ability.name}
+            </BattleButton>);
     });
+
+    const strikeAbility = player.weapon.strikeAbility;
+    const strikeAbilityColors = [...imbuedColors];
+    if (strikeAbility.elements) {
+        strikeAbilityColors.push(...strikeAbility.elements.map((element) => {
+            return colors.getElementalColor(element);
+        }));
+    }
+
+    const strikeAbilityCost = getStrikeAbilityCost(player);
+    const strikeAbilityTagColor = player.ap >= strikeAbilityCost ? colors.blue : colors.red;
+    const weaponColor = "var(--foreground-rgb)";
 
     return (
             <div className={battleStyle['battle-controls-frame']}>
-                <Button style={strikeButtonStyle} className={`${battleStyle['battle-btn']} ${battleStyle['strike-btn']}`} onClick={onStrikeClicked}>{strikeText}</Button>
+                <BattleButton buttonColors={imbuedColors} defaultColor={weaponColor} className={battleStyle['strike-btn']} image={backend.getResourceURL(player.weapon.icon)} onClick={onStrikeClicked}>
+                    Strike
+                </BattleButton>
+                <BattleButton buttonColors={strikeAbilityColors} defaultColor={weaponColor} tag={strikeAbilityCost} tagColor={strikeAbilityTagColor} className={battleStyle['strike-btn']} image={backend.getResourceURL(player.weapon.icon)}
+                onClick={onStrikeAbilityClicked}>
+                    {strikeAbility.name}
+                </BattleButton>
                 {abilityButtons}
         </div>
     )
+}
+
+/**
+ * 
+ * @param {{
+ * buttonColors: string[],
+ * defaultColor: string,
+ * tag: string|number,
+ * tagColor: string,
+ * image: string,
+ * className: string,
+ * children: JSX.Element
+ * onClick: ()=>{}
+ * }} attributes 
+ */
+function BattleButton({buttonColors = [], defaultColor = colors.grey, tag, tagColor=colors.blue, className='', image, children, onClick=()=>{}}) {
+    let gradient = 'linear-gradient(-45deg';
+
+    if (buttonColors.length === 0) {
+        gradient = defaultColor;
+    }
+    else {
+        let index = 0;
+        for (const color of buttonColors) {
+            const percentage = 100 / buttonColors.length;
+            gradient += `,${color} ${percentage * index}% ${percentage * (index+1)}%`;
+            index++;
+        }
+        gradient += ")";
+    }
+
+    /**@type {CSSProperties} */
+    const style = {
+        backgroundImage: gradient,
+        backgroundColor: gradient
+    };
+    
+    if (image) {
+        style.backgroundImage = `url(${image})`;
+        if (gradient !== defaultColor) {
+            style.backgroundImage = `url(${image}), ${gradient}`;
+        }
+    }
+        console.log(style);
+    return (
+        <Button style={style} className={`${battleStyle['battle-btn']} ${className}`} onClick={onClick}>
+            {tag !== undefined && <RPGTag style={{background: tagColor}}>{tag}</RPGTag>}
+            {children}
+        </Button>);
 }
 
 function MessageControls({children}) {
@@ -899,4 +943,13 @@ function findAllEffects(agent, battle, name) {
         }
     }
     return effects;
+}
+
+/**
+ * 
+ * @param {BattleAgentData} agent 
+ */
+function getStrikeAbilityCost(agent) {
+    const DEFAULT_STRIKE_ABILITY_COST = 2;
+    return DEFAULT_STRIKE_ABILITY_COST - agent.strikeLevel;
 }

@@ -1,6 +1,7 @@
 import frontendContext from "./frontend-context";
 
-const backendURL = process.env.NODE_ENV === 'development' ? "http://localhost:4000" : 'https://web-rpg-9000.uw.r.appspot.com/';
+const backendURL = 'https://new-strike-system-dot-web-rpg-9000.uw.r.appspot.com/';
+//const backendURL = "https://development-dot-web-rpg-9000.uw.r.appspot.com/";
 const resourceBackendURL = 'https://storage.googleapis.com/web_rpg_resources/';
 
 const cache = {
@@ -423,7 +424,8 @@ export default backend;
  * }} MonsterData
  * 
  * @typedef {AgentData & {
- * maxAp: number
+ * maxAp: number,
+ * strikeLevel: number
  * }} BattleAgentData
  * 
  * @typedef {Object} CollectionContainer
