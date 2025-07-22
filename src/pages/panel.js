@@ -11,6 +11,7 @@ import Inventory from "@/components/panel/inventory";
 import Battle from "@/components/panel/battle";
 import RootPath from "@/components/panel/root-path";
 import GameGuide from "@/components/panel/game-guide";
+import GameGuideArticlePage from "@/components/panel/game-guide-article";
 
 export default function Panel() {
     const [router, setRouter] = useState();
@@ -60,6 +61,10 @@ export default function Panel() {
                         path: "/panel/game-guide",
                         element: <GameGuide/>
                     },
+                    {
+                        path: "/panel/game-guide-article",
+                        element: <GameGuideArticlePage/>
+                    }
                     
                 ]
             }

@@ -2,6 +2,14 @@ import Tooltip from "../tooltip/tooltip";
 import RPGText from "./text";
 import keywordStyles from "./keyword-text.module.css"
 
+/**
+ * 
+ * @param {{
+ *     style?: CSSProperties,
+ *     children?: JSX.Element
+ * }} attributes 
+ * @returns 
+ */
 export default function KeywordText({style, children}) {
     return (
         <RPGText style={style} styleData={textStyleData}>{children}</RPGText>
@@ -124,11 +132,11 @@ const textStyleData = [
     },
     {
         text: /[sS]trike [aA]bility/,
-        style: DefineKeyword("Your weapon's special ability. Strike your target 2 times to ready this ability.")
+        style: DefineKeyword("Your weapon's special ability. It normally costs 2 AP but strikes reduce this cost by 1 AP.")
     },
     {
         text: /[sS]trikes?/,
-        style: DefineKeyword("The first option in the battle menu. It's free to use and gives you one AP so that you can use your abilities. Unfortunately, this attack is very weak.")
+        style: DefineKeyword("The first option in the battle menu. It's free to use and gives you one AP so that you can use your abilities.")
     },
     {
         text: /[rR]ecoil [dD]amage/,

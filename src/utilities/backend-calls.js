@@ -1,13 +1,15 @@
+// @ts-check
 import frontendContext from "./frontend-context";
 
-const backendURL = 'https://new-strike-system-dot-web-rpg-9000.uw.r.appspot.com/';
+const backendURL = process.env.NODE_ENV === 'development' ? "http://localhost:4000" : 'https://web-rpg-9000.uw.r.appspot.com/';
 //const backendURL = "https://development-dot-web-rpg-9000.uw.r.appspot.com/";
 const resourceBackendURL = 'https://storage.googleapis.com/web_rpg_resources/';
 
 const cache = {
     game: null,
     shop: null,
-    inventory: {}
+    inventory: {},
+    gameGuide: null
 };
 
 /**
@@ -29,8 +31,8 @@ function endpoint_url(name, ...queryStrings) {
 /**
  * 
  * @param {string} endpoint 
- * @param {string} method 
- * @param {object} payload 
+ * @param {string} [method] 
+ * @param {object} [payload] 
  * @returns 
  */
 async function backendCall(endpoint, method='GET', payload) {
@@ -40,6 +42,7 @@ async function backendCall(endpoint, method='GET', payload) {
 
     let body = '';
 
+    /**@type {RequestInit} */
     const fetchOptions = {
         credentials: 'omit',
         mode: 'cors',
@@ -74,6 +77,20 @@ function getStartingAvatars() {
 
 function getGameInfo() {
     return backendCall(endpoint_url('get_game_info'));
+}
+
+/**
+ * 
+ * @returns {Promise<GameGuide>}
+ */
+async function getGameGuide() {
+    if (cache.gameGuide) {
+        return cache.gameGuide;
+    }
+
+    const gameGuide = await backendCall(endpoint_url('get_game_guide'));
+    cache.gameGuide = gameGuide;
+    return gameGuide;
 }
 
 async function createNewPlayer(name, playerId, avatar, vitalityBonus, weaponType) {
@@ -168,7 +185,7 @@ async function getShop() {
  * @param {string} shopId 
  * @param {string} productId 
  * @param {number} amount 
- * @returns {PlayerData}
+ * @returns {Promise<PlayerData>}
  */
 async function buy(playerId, shopId, productId, amount=1) {
     const result = await backendCall(endpoint_url('buy', `playerId=${playerId}`, `shopId=${shopId}`, `productId=${productId}`, `amount=${amount}`), 'POST');
@@ -293,6 +310,7 @@ const backend = {
     getResourceURL,
     getStartingAvatars,
     getGameInfo,
+    getGameGuide,
     createNewPlayer,
     getPlayer,
     joinGame,
@@ -428,11 +446,6 @@ export default backend;
  * strikeLevel: number
  * }} BattleAgentData
  * 
- * @typedef {Object} CollectionContainer
- * @property {string} type
- * @property {string} id
- * @property {Object} content
- * 
  * @typedef {Object} InventoryPageData
  * @property {string} id
  * @property {CollectionContainer[]} objects
@@ -455,4 +468,25 @@ export default backend;
  * 
  * @typedef {Object} BattleData
  * @property {EffectData[]} effects
+ * 
+ * @typedef {Object} GuideEntry
+ * @property {string} title
+ * @property {string} content
+ * 
+ * @typedef {Object} _GuideTopic
+ * @property {GuideEntry[]} [subTopics]
+ * 
+ * @typedef {GuideEntry & _GuideTopic} GuideTopic
+ * 
+ * @typedef {Object} _GuideArticle
+ * @property {string} title
+ * @property {string} thumbnail
+ * @property {string} summary
+ * @property {GuideTopic[]} topics
+ * 
+ * @typedef {_GuideArticle} GuideArticle
+ * 
+ * 
+ * @typedef {Object} GameGuide
+ * @property {GuideArticle[]} articles
  */

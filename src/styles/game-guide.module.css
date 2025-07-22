@@ -1,0 +1,30 @@
+.game-guide-topic {
+    width: 200px;
+    height: 200px;
+    background: var(--background-deep-rgb);
+    border-radius: 25px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px;
+}
+
+.game-guide-topic:hover {
+    background-color: var(--background-deep-rgb-darker);
+}
+
+.game-guide-topic-thumbnail {
+    position: relative;
+    height: 100%;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.game-guide-list {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+}

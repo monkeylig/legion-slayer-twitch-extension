@@ -1,4 +1,10 @@
 @layer {
+    .button-tag {
+        border: 0;
+        font-family: inherit;
+        color: inherit;
+    }
+
     .rpg-button {
         background: var(--green);
         border: 0;
